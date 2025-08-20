@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Teste Gemini AI</title>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-brand">Teste Gemini AI</div>
+      <div class="nav-items">
+        <button id="loginBtn" class="nav-btn">Login</button>
+        <button id="signupBtn" class="nav-btn">Sign Up</button>
+        <button id="themeToggle" class="theme-toggle">
+          <svg class="moon-icon" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg class="sun-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5" />
+            <path
+              d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+            />
+          </svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Login</h2>
+        <form id="loginForm">
+          <input type="email" placeholder="Email" required />
+          <input type="password" placeholder="Password" required />
+          <button type="submit">Login</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Sign Up</h2>
+        <form id="signupForm">
+          <input type="text" placeholder="Name" required />
+          <input type="email" placeholder="Email" required />
+          <input type="password" placeholder="Password" required />
+          <input type="password" placeholder="Confirm Password" required />
+          <button type="submit">Sign Up</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="app-container">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <button id="newChatBtn" class="new-chat-btn">
+            <span class="plus-icon">+</span>
+            New chat
+          </button>
+        </div>
+        <div class="chat-history">
+          <div class="time-section">
+            <h3>Today</h3>
+            <ul id="conversationList">
+              <!-- Chat history will be populated here -->
+            </ul>
+          </div>
+        </div>
+        <div class="sidebar-footer">
+          <button id="clearHistoryBtn" class="clear-history-btn">
+            Clear History
+          </button>
+        </div>
+      </aside>
+
+      <main class="chat-container">
+        <div id="chatOutput" class="chat-messages">
+          <div class="welcome-screen">
+            <div class="welcome-icon">
+              <img src="assets/logo.png" alt="AI Avatar" />
+            </div>
+            <h1>Hi, I'm Teste Gemini AI.</h1>
+            <p>How can I help you today?</p>
+          </div>
+          <!-- Loading animation -->
+          <div
+            class="loading-container"
+            id="loadingAnimation"
+            style="display: none"
+          >
+            <div class="message bot-message">
+              <div class="ai-avatar">
+                <img src="assets/logo.png" alt="AI Avatar" />
+              </div>
+              <div class="loading-content">
+                <div class="loading-text">Gemini está processando sua solicitação...</div>
+                <div class="loading-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Chat messages will appear here -->
+        </div>
+
+        <div class="input-area">
+          <div class="input-container">
+            <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+            <button id="imageBtn" class="image-btn" title="Anexar imagem">
+              <svg viewBox="0 0 24 24" class="image-icon">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+              </svg>
+            </button>
+            <input
+              type="text"
+              id="userInput"
+              placeholder="Message Teste Gemini..."
+            />
+            <button id="sendButton">
+              <svg viewBox="0 0 24 24" class="send-icon">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+              </svg>
+            </button>
+          </div>
+          <div id="imagePreview" class="image-preview" style="display: none;">
+            <img id="previewImg" src="" alt="Preview" />
+            <button id="removeImage" class="remove-image">×</button>
+          </div>
+          <div class="input-footer">Press Enter to send</div>
+        </div>
+      </main>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
