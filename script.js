@@ -22,6 +22,7 @@ class ChatBot {
         this.imagePreview = document.getElementById("imagePreview");
         this.previewImg = document.getElementById("previewImg");
         this.removeImageBtn = document.getElementById("removeImage");
+        this.generateImageBtn = document.getElementById("generateImageBtn");
 
         // Event Listeners
         this.userInput.addEventListener("keypress", (e) => {
@@ -37,10 +38,20 @@ class ChatBot {
         this.imageBtn.addEventListener("click", () => this.imageInput.click());
         this.imageInput.addEventListener("change", (e) => this.handleImageUpload(e));
         this.removeImageBtn.addEventListener("click", () => this.removeImage());
+        
+        // Image generation event
+        this.generateImageBtn.addEventListener("click", () => this.handleImageGeneration());
 
         // Paste event for images
         this.userInput.addEventListener("paste", (e) => this.handlePaste(e));
         document.addEventListener("paste", (e) => this.handlePaste(e));
+
+        // Quick suggestion buttons
+        document.addEventListener("click", (e) => {
+            if (e.target.classList.contains("suggestion-btn")) {
+                this.handleSuggestionClick(e.target);
+            }
+        });
 
         // Carregar conversas salvas
         this.loadConversations();
@@ -59,13 +70,66 @@ class ChatBot {
 
     setLoading(loading) {
         this.isLoading = loading;
-        this.loadingAnimation.style.display = loading ? "block" : "none";
         this.sendButton.disabled = loading;
         this.userInput.disabled = loading;
 
         if (loading) {
-            // Scroll to bottom to show loading animation
-            this.chatOutput.scrollTop = this.chatOutput.scrollHeight;
+            // Add loading animation directly to chat
+            this.addLoadingMessage();
+        } else {
+            // Remove loading animation
+            this.removeLoadingMessage();
+        }
+    }
+
+    addLoadingMessage() {
+        // Remove any existing loading message first
+        this.removeLoadingMessage();
+        
+        const loadingDiv = document.createElement("div");
+        loadingDiv.className = "message bot-message loading-message";
+        loadingDiv.id = "currentLoadingMessage";
+
+        // Add avatar for bot messages
+        const avatarDiv = document.createElement("div");
+        avatarDiv.className = "ai-avatar";
+        const avatarImg = document.createElement("img");
+        avatarImg.src = "assets/logo.png";
+        avatarImg.alt = "AI Avatar";
+        avatarDiv.appendChild(avatarImg);
+        loadingDiv.appendChild(avatarDiv);
+
+        const loadingContent = document.createElement("div");
+        loadingContent.className = "loading-content";
+        
+        const loadingText = document.createElement("div");
+        loadingText.className = "loading-text";
+        loadingText.textContent = "CorrigeAI está processando sua solicitação...";
+        
+        const loadingDots = document.createElement("div");
+        loadingDots.className = "loading-dots";
+        for (let i = 0; i < 3; i++) {
+            const span = document.createElement("span");
+            loadingDots.appendChild(span);
+        }
+        
+        loadingContent.appendChild(loadingText);
+        loadingContent.appendChild(loadingDots);
+        loadingDiv.appendChild(loadingContent);
+        
+        this.chatOutput.appendChild(loadingDiv);
+        this.chatOutput.scrollTop = this.chatOutput.scrollHeight;
+    }
+
+    removeLoadingMessage() {
+        const existingLoading = document.getElementById("currentLoadingMessage");
+        if (existingLoading) {
+            existingLoading.remove();
+        }
+        
+        // Also hide the static loading animation if it exists
+        if (this.loadingAnimation) {
+            this.loadingAnimation.style.display = "none";
         }
     }
 
@@ -119,47 +183,283 @@ class ChatBot {
         this.imageInput.value = '';
     }
 
-    async handleUserInput() {
-        const message = this.userInput.value.trim();
-        if (!message && !this.currentImage) return;
+    handleSuggestionClick(button) {
+        const suggestion = button.getAttribute('data-suggestion');
+        const suggestionTexts = {
+            'Criar uma atividade': 'Olá! Preciso de ajuda para criar uma atividade educacional. Pode me ajudar?',
+            'Corrigir prova': 'Preciso corrigir uma prova ou trabalho. Como posso enviar o gabarito para você me ajudar?',
+            'Plano de aula': 'Gostaria de ajuda para elaborar um plano de aula. Qual seria a melhor forma de começar?',
+            'Exercícios': 'Preciso criar exercícios para meus alunos. Pode me ajudar com algumas sugestões?',
+            'Análise de imagem': 'Vou enviar uma imagem para você analisar e me dar insights educacionais sobre ela.',
+            'Dúvida pedagógica': 'Tenho uma dúvida sobre metodologia de ensino. Pode me orientar?'
+        };
 
-        // Hide welcome screen on first message
+        const text = suggestionTexts[suggestion] || suggestion;
+        this.userInput.value = text;
+        this.userInput.focus();
+        
+        // Hide welcome screen
         this.hideWelcomeScreen();
+    }
 
-        // Add user message with image if present
-        this.addMessage(message, "user", this.currentImage);
-        this.userInput.value = "";
+    async handleUserInput() {
+        const text = this.userInput.value.trim();
+        if (!text && !this.currentImage) return;
 
-        // Store current image for API call
-        const imageForAPI = this.currentImage;
-
-        // Clear image after sending
-        this.removeImage();
-
-        // Show loading animation
-        this.setLoading(true);
-
-        try {
-            // Send message with image to API
-            const response = await this.getBotResponse(message, imageForAPI);
-
-            // Hide loading animation
-            this.setLoading(false);
-
-            this.addMessage(response, "bot");
-        } catch (error) {
-            console.error("Erro:", error);
-
-            // Hide loading animation
-            this.setLoading(false);
-
-            this.addMessage(
-                "Desculpe, ocorreu um erro ao processar sua mensagem.",
-                "bot"
-            );
+        // Check if user wants to generate an image using keywords
+        if (this.isImageGenerationRequest(text)) {
+            this.handleImageGenerationFromText(text);
+            return;
         }
 
-        this.saveConversations();
+        try {
+            this.addMessage(text, "user", this.currentImage);
+            this.userInput.value = "";
+            
+            // Store image reference and clear it
+            const imageToSend = this.currentImage;
+            this.removeImage();
+
+            this.setLoading(true);
+            const response = await this.generateResponse(text, imageToSend);
+            this.addMessage(response, "bot");
+            this.saveConversations();
+        } catch (error) {
+            this.addMessage("Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.", "bot");
+            console.error("Erro:", error);
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    isImageGenerationRequest(text) {
+        const imageKeywords = [
+            'gere uma imagem',
+            'gerar uma imagem',
+            'crie uma imagem',
+            'criar uma imagem',
+            'faça uma imagem',
+            'fazer uma imagem',
+            'desenhe uma imagem',
+            'desenhar uma imagem',
+            'monte uma imagem',
+            'montar uma imagem',
+            'produza uma imagem',
+            'produzir uma imagem',
+            'gere imagem',
+            'gerar imagem',
+            'crie imagem',
+            'criar imagem',
+            'faça imagem',
+            'fazer imagem',
+            'desenhe',
+            'desenhar',
+            'ilustre',
+            'ilustrar',
+            'visualize',
+            'visualizar'
+        ];
+
+        const lowerText = text.toLowerCase();
+        return imageKeywords.some(keyword => lowerText.includes(keyword));
+    }
+
+    extractImagePromptFromText(text) {
+        const imageKeywords = [
+            'gere uma imagem de',
+            'gere uma imagem',
+            'gerar uma imagem de',
+            'gerar uma imagem',
+            'crie uma imagem de',
+            'crie uma imagem',
+            'criar uma imagem de',
+            'criar uma imagem',
+            'faça uma imagem de',
+            'faça uma imagem',
+            'fazer uma imagem de',
+            'fazer uma imagem',
+            'desenhe uma imagem de',
+            'desenhe uma imagem',
+            'desenhar uma imagem de',
+            'desenhar uma imagem',
+            'monte uma imagem de',
+            'monte uma imagem',
+            'montar uma imagem de',
+            'montar uma imagem',
+            'produza uma imagem de',
+            'produza uma imagem',
+            'produzir uma imagem de',
+            'produzir uma imagem',
+            'gere imagem de',
+            'gere imagem',
+            'gerar imagem de',
+            'gerar imagem',
+            'crie imagem de',
+            'crie imagem',
+            'criar imagem de',
+            'criar imagem',
+            'faça imagem de',
+            'faça imagem',
+            'fazer imagem de',
+            'fazer imagem',
+            'desenhe',
+            'desenhar',
+            'ilustre',
+            'ilustrar',
+            'visualize',
+            'visualizar'
+        ];
+
+        const lowerText = text.toLowerCase();
+        
+        // Find the longest matching keyword
+        let longestMatch = '';
+        for (const keyword of imageKeywords) {
+            if (lowerText.includes(keyword) && keyword.length > longestMatch.length) {
+                longestMatch = keyword;
+            }
+        }
+
+        if (longestMatch) {
+            // Extract the prompt after the keyword
+            const keywordIndex = lowerText.indexOf(longestMatch);
+            const afterKeyword = text.substring(keywordIndex + longestMatch.length).trim();
+            
+            // If there's content after the keyword, use it, otherwise use the original text
+            return afterKeyword || text.replace(new RegExp(longestMatch, 'i'), '').trim();
+        }
+
+        return text;
+    }
+
+    async handleImageGenerationFromText(text) {
+        const prompt = this.extractImagePromptFromText(text);
+        
+        if (!prompt) {
+            this.addMessage("Por favor, descreva melhor a imagem que você gostaria de gerar! Por exemplo: 'Gere uma imagem de um gato estudando'", "bot");
+            this.userInput.value = "";
+            return;
+        }
+
+        try {
+            console.log("Geração de imagem detectada automaticamente:", prompt);
+            
+            // Add user message with generation request
+            this.addMessage(text, "user");
+            this.userInput.value = "";
+            
+            this.setLoading(true);
+            // Generate image using Pollinations API
+            const imageUrl = await this.generateImage(prompt);
+            console.log("Imagem gerada com sucesso:", imageUrl);
+            
+            // Add bot message with generated image
+            this.addGeneratedImageMessage(imageUrl, prompt);
+            this.saveConversations();
+            
+            console.log("Processo de geração de imagem concluído com sucesso!");
+        } catch (error) {
+            console.error("Erro detalhado na geração de imagem:", error);
+            this.addMessage("Desculpe, ocorreu um erro ao gerar a imagem: " + error.message, "bot");
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    async handleImageGeneration() {
+        const prompt = this.userInput.value.trim();
+        if (!prompt) {
+            alert("Por favor, descreva a imagem que você gostaria de gerar!");
+            return;
+        }
+
+        try {
+            this.setLoading(true);
+            console.log("Iniciando geração de imagem para:", prompt);
+            
+            // Add user message with generation request
+            this.addMessage("🎨 Gerar imagem: " + prompt, "user");
+            this.userInput.value = "";
+            
+            // Generate image using Pollinations API
+            const imageUrl = await this.generateImage(prompt);
+            console.log("Imagem gerada com sucesso:", imageUrl);
+            
+            // Add bot message with generated image
+            this.addGeneratedImageMessage(imageUrl, prompt);
+            this.saveConversations();
+            
+            console.log("Processo de geração de imagem concluído com sucesso!");
+        } catch (error) {
+            console.error("Erro detalhado na geração de imagem:", error);
+            this.addMessage("Desculpe, ocorreu um erro ao gerar a imagem: " + error.message, "bot");
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    async generateImage(prompt) {
+        try {
+            // Clean the prompt for URL encoding
+            const cleanPrompt = encodeURIComponent(prompt);
+            
+            // Use Pollinations API for free image generation
+            const imageUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=512&height=512&model=flux&nologo=true`;
+            
+            console.log("URL da imagem gerada:", imageUrl);
+            
+            // Return the URL directly - Pollinations API is reliable
+            return imageUrl;
+        } catch (error) {
+            console.error("Erro no generateImage:", error);
+            throw error;
+        }
+    }
+
+    addGeneratedImageMessage(imageUrl, prompt) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message bot-message";
+        
+        // Add avatar for bot messages
+        const avatarDiv = document.createElement("div");
+        avatarDiv.className = "ai-avatar";
+        const avatarImg = document.createElement("img");
+        avatarImg.src = "assets/logo.png";
+        avatarImg.alt = "AI Avatar";
+        avatarDiv.appendChild(avatarImg);
+        messageDiv.appendChild(avatarDiv);
+        
+        const messageContent = document.createElement("div");
+        messageContent.className = "message-content";
+        
+        const text = document.createElement("div");
+        text.className = "message-text";
+        text.innerHTML = `🎨 Imagem gerada para: "${prompt}"`;
+        
+        const imageContainer = document.createElement("div");
+        imageContainer.className = "generated-image";
+        
+        const img = document.createElement("img");
+        img.src = imageUrl;
+        img.alt = prompt;
+        img.style.maxWidth = "100%";
+        img.style.borderRadius = "8px";
+        img.style.marginTop = "10px";
+        
+        imageContainer.appendChild(img);
+        messageContent.appendChild(text);
+        messageContent.appendChild(imageContainer);
+        messageDiv.appendChild(messageContent);
+        
+        this.chatOutput.appendChild(messageDiv);
+        this.chatOutput.scrollTop = this.chatOutput.scrollHeight;
+        
+        // Add to conversation history
+        this.currentConversation.push({ 
+            sender: "bot", 
+            message: `🎨 Imagem gerada para: "${prompt}"`,
+            imageUrl: imageUrl
+        });
     }
 
     addMessage(message, sender, image = null) {
@@ -212,6 +512,10 @@ class ChatBot {
         this.currentConversation.push({ sender, message, image });
     }
 
+    async generateResponse(message, image = null) {
+        return await this.getBotResponse(message, image);
+    }
+
     async getBotResponse(message, image = null) {
         const API_KEY = "AIzaSyBmXICpEOU1V4oLuTcELyRNFehiRcD8aWw";
         const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
@@ -221,16 +525,12 @@ class ChatBot {
         // Prepare the content parts
         let parts = [];
 
-        if (message) {
+        // Analyze the message to provide better context
+        const enhancedPrompt = this.enhancePromptForEducation(message, image);
+
+        if (message || image) {
             parts.push({
-                text: `Você é um assistente educacional para professores. Sua função é:
-Ler e interpretar arquivos enviados (de qualquer formato, incluindo imagens).
-Ajudar a criar atividades, exercícios e conteúdos para as aulas.
-Corrigir provas e trabalhos com base no gabarito fornecido pelos professores.
-Pesquisar e fornecer informações precisas e confiáveis, sempre em português, de forma clara, objetiva e didática.
-Ser educado, prestativo e apoiar o professor em suas tarefas.
-Criar imagens ilustrativas sempre que necessário para complementar o conteúdo.
-Quando receber imagens, deve analisá-las e buscar informações relevantes em todas as fontes possíveis para auxiliar o professor.`
+                text: enhancedPrompt
             });
         }
 
@@ -258,10 +558,10 @@ Quando receber imagens, deve analisá-las e buscar informações relevantes em t
                         }
                     ],
                     generationConfig: {
-                        temperature: 0.9,
+                        temperature: 0.7,
                         topK: 40,
                         topP: 0.95,
-                        maxOutputTokens: 1024,
+                        maxOutputTokens: 2048,
                     },
                 }),
             });
@@ -292,8 +592,96 @@ Quando receber imagens, deve analisá-las e buscar informações relevantes em t
             }
         } catch (error) {
             console.error("Error details:", error);
-            return "Ops, deu um erro aqui! Você tem talento pra quebrar as coisas, hein? 😅 Tenta de novo!";
+            
+            // Return different error messages based on error type
+            if (error.message.includes('API')) {
+                return "⚠️ **Problema de conexão com a API**\n\nDesculpe, houve um problema técnico ao conectar com o serviço. Isso pode acontecer por:\n\n• Problemas temporários de conexão\n• Limite de uso da API atingido\n• Manutenção do serviço\n\nPor favor, tente novamente em alguns minutos. Se o problema persistir, verifique sua conexão com a internet.";
+            } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                return "🌐 **Problema de rede**\n\nParece que há um problema com sua conexão à internet. Verifique:\n\n• Se você está conectado à internet\n• Se não há bloqueios de firewall\n• Tente recarregar a página\n\nApós verificar, tente enviar sua mensagem novamente.";
+            } else {
+                return "🤖 **Oops, algo deu errado!**\n\nDesculpe, encontrei um problema inesperado ao processar sua solicitação. \n\n**O que você pode fazer:**\n• Tente reformular sua pergunta\n• Verifique se a imagem enviada não está corrompida\n• Recarregue a página se necessário\n\nSe o problema persistir, me informe detalhes sobre o que você estava tentando fazer para que eu possa ajudar melhor! 😊";
+            }
         }
+    }
+
+    enhancePromptForEducation(message, image) {
+        const basePrompt = `Você é "Corrige AI", um assistente educacional especializado para professores. Suas funções e diretrizes são:
+
+🎯 FUNÇÕES PRINCIPAIS:
+• Ler, interpretar e analisar arquivos enviados (texto, imagens, PDFs, planilhas)
+• Criar atividades, exercícios, avaliações e conteúdos pedagógicos
+• Corrigir provas, trabalhos e redações com base em gabaritos fornecidos
+• Elaborar planos de aula e materiais didáticos
+• Pesquisar informações educacionais precisas e confiáveis
+• Adaptar conteúdos para diferentes níveis de ensino
+• Sugerir metodologias e estratégias pedagógicas
+
+📋 DIRETRIZES DE COMPORTAMENTO:
+• SEMPRE responda em português brasileiro, de forma clara e didática
+• SEJA HONESTO: Se não souber algo, diga "Não tenho informações suficientes sobre isso" ou "Preciso de mais detalhes para ajudar melhor"
+• NUNCA invente informações falsas ou dados inexistentes
+• Pergunte detalhes quando necessário (série/ano, disciplina, objetivo da atividade)
+• Seja educado, prestativo e encorajador
+• Forneça respostas estruturadas e organizadas
+• Ofereça alternativas e sugestões práticas
+
+🔍 QUANDO ANALISAR IMAGENS:
+• Descreva detalhadamente o que vê na imagem
+• Identifique textos, gráficos, exercícios ou conteúdos educacionais
+• Forneça contexto educacional relevante
+• Sugira atividades relacionadas ao conteúdo da imagem
+
+⚠️ LIMITAÇÕES QUE DEVO INFORMAR:
+• "Não posso criar imagens, mas posso sugerir descrições detalhadas"
+• "Não tenho acesso à internet em tempo real para informações atualizadas"
+• "Não posso acessar sistemas externos ou fazer downloads"
+• "Para informações muito específicas ou técnicas, recomendo consultar fontes especializadas"`;
+
+        // Detect the type of request and enhance accordingly
+        if (!message) {
+            return basePrompt + `\n\nO usuário enviou apenas uma imagem. Analise-a detalhadamente e forneça insights educacionais relevantes.`;
+        }
+
+        const lowerMessage = message.toLowerCase();
+        
+        // Enhanced prompts for specific educational tasks
+        if (lowerMessage.includes('atividade') || lowerMessage.includes('exercício')) {
+            return basePrompt + `\n\nO professor está solicitando ajuda com criação de atividade/exercício. 
+            
+INSTRUÇÕES ESPECÍFICAS:
+• Pergunte sobre: série/ano, disciplina, tema específico, objetivos de aprendizagem
+• Sugira diferentes tipos de atividades (individual, grupo, prática, teórica)
+• Inclua critérios de avaliação quando relevante
+• Considere diferentes níveis de dificuldade
+
+Solicitação: ${message}`;
+        }
+        
+        if (lowerMessage.includes('correção') || lowerMessage.includes('corrigir') || lowerMessage.includes('gabarito')) {
+            return basePrompt + `\n\nO professor precisa de ajuda com correção. 
+            
+INSTRUÇÕES ESPECÍFICAS:
+• Se não houver gabarito, solicite o critério de correção
+• Forneça feedback construtivo para os alunos
+• Identifique pontos fortes e áreas para melhoria
+• Sugira como dar devolutiva aos estudantes
+
+Solicitação: ${message}`;
+        }
+        
+        if (lowerMessage.includes('plano de aula') || lowerMessage.includes('planejamento')) {
+            return basePrompt + `\n\nO professor está planejando uma aula. 
+            
+INSTRUÇÕES ESPECÍFICAS:
+• Pergunte sobre: disciplina, série/ano, tempo de aula, tema/conteúdo
+• Estruture: objetivos, metodologia, recursos, avaliação
+• Considere diferentes estratégias pedagógicas
+• Inclua sugestões de materiais e recursos
+
+Solicitação: ${message}`;
+        }
+
+        return basePrompt + `\n\nPergunta do usuário: ${message}\n\nResponda de acordo com essas diretrizes, sendo útil, preciso e honesto sobre suas capacidades e limitações.`;
     }
 
     formatMessage(message) {
@@ -302,6 +690,32 @@ Quando receber imagens, deve analisá-las e buscar informações relevantes em t
             /(https?:\/\/[^\s]+)/g,
             '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
         );
+
+        // Convert markdown bold (**text**) to HTML
+        message = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+        // Convert markdown italic (*text*) to HTML
+        message = message.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        
+        // Convert markdown lists (• item) to HTML
+        message = message.replace(/^• (.+)$/gm, '<li>$1</li>');
+        
+        // Wrap consecutive list items in ul tags
+        message = message.replace(/(<li>.*<\/li>)/gs, (match) => {
+            return '<ul>' + match + '</ul>';
+        });
+        
+        // Convert numbered lists (1. item) to HTML
+        message = message.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+        
+        // Wrap consecutive numbered list items in ol tags
+        message = message.replace(/(<li>.*<\/li>)/gs, (match) => {
+            // Only convert if it's not already in a ul
+            if (!match.includes('<ul>')) {
+                return '<ol>' + match + '</ol>';
+            }
+            return match;
+        });
 
         // Convert emojis to larger size
         message = message.replace(

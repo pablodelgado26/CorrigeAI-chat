@@ -8,7 +8,7 @@
   </head>
   <body>
     <nav class="navbar">
-      <div class="nav-brand">Teste Gemini AI</div>
+      <div class="nav-brand">CorrigeAI</div>
       <div class="nav-items">
         <button id="loginBtn" class="nav-btn">Login</button>
         <button id="signupBtn" class="nav-btn">Sign Up</button>
@@ -85,6 +85,19 @@
             </div>
             <h1>Hi, I'm Teste Gemini AI.</h1>
             <p>How can I help you today?</p>
+            
+            <!-- Quick suggestions for teachers -->
+            <div class="quick-suggestions">
+              <h3>Sugestões rápidas:</h3>
+              <div class="suggestion-buttons">
+                <button class="suggestion-btn" data-suggestion="Criar uma atividade">📝 Criar Atividade</button>
+                <button class="suggestion-btn" data-suggestion="Corrigir prova">✅ Corrigir Prova</button>
+                <button class="suggestion-btn" data-suggestion="Plano de aula">📚 Plano de Aula</button>
+                <button class="suggestion-btn" data-suggestion="Exercícios">🧮 Exercícios</button>
+                <button class="suggestion-btn" data-suggestion="Análise de imagem">🔍 Analisar Imagem</button>
+                <button class="suggestion-btn" data-suggestion="Dúvida pedagógica">❓ Dúvida Pedagógica</button>
+              </div>
+            </div>
           </div>
           <!-- Loading animation -->
           <div
@@ -97,7 +110,7 @@
                 <img src="assets/logo.png" alt="AI Avatar" />
               </div>
               <div class="loading-content">
-                <div class="loading-text">Gemini está processando sua solicitação...</div>
+                <div class="loading-text">CorrigeAI está processando sua solicitação...</div>
                 <div class="loading-dots">
                   <span></span>
                   <span></span>
@@ -117,10 +130,11 @@
                 <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
               </svg>
             </button>
+
             <input
               type="text"
               id="userInput"
-              placeholder="Message Teste Gemini..."
+              placeholder="Mande uma mensagem pro CorrigeAI..."
             />
             <button id="sendButton">
               <svg viewBox="0 0 24 24" class="send-icon">
@@ -132,7 +146,7 @@
             <img id="previewImg" src="" alt="Preview" />
             <button id="removeImage" class="remove-image">×</button>
           </div>
-          <div class="input-footer">Press Enter to send</div>
+          <div class="input-footer">Aperte Enter para enviar</div>
         </div>
       </main>
     </div>
