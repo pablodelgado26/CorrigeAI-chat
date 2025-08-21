@@ -43,11 +43,14 @@ body {
     background-color: var(--primary-bg);
     line-height: 1.5;
     transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
+    overflow-x: hidden; /* Impede scroll horizontal */
+    min-width: 320px; /* Largura mínima */
 }
 
 .app-container {
     display: flex;
     height: calc(100vh - 48px); /* Subtract navbar height */
+    overflow: hidden; /* Impede scroll horizontal */
 }
 
 /* Navbar Styles */
@@ -60,18 +63,26 @@ body {
     border-bottom: 1px solid var(--border-color);
     height: 48px;
     transition: all 0.5s ease-in-out;
+    position: relative;
+    z-index: 100; /* Garante que fique acima do conteúdo */
+    flex-shrink: 0; /* Impede que seja comprimida */
 }
 
 .nav-brand {
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-primary);
+    white-space: nowrap; /* Impede quebra de linha */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0; /* Impede compressão */
 }
 
 .nav-items {
     display: flex;
     gap: 1rem;
     align-items: center;
+    flex-shrink: 0; /* Impede compressão dos itens */
 }
 
 .nav-btn {
@@ -240,6 +251,8 @@ body {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
+    min-width: 0; /* Previne overflow */
+    box-sizing: border-box;
 }
 
 .welcome-message {
@@ -255,6 +268,7 @@ body {
     border-radius: 50%;
     overflow: hidden;
     position: relative;
+    flex-shrink: 0; /* Impede que o avatar seja comprimido */
 }
 
 .ai-avatar img {
@@ -331,14 +345,18 @@ body {
     margin-bottom: 1rem;
     padding: 0.75rem;
     border-radius: 0.5rem;
-    max-width: 70%;
+    max-width: 85%;
     transition: all 0.5s ease-in-out;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .message-content {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    min-width: 0; /* Permite quebra de texto correta */
+    flex: 1; /* Ocupa espaço disponível */
 }
 
 .message-image img {
@@ -351,6 +369,9 @@ body {
 
 .message-text {
     line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 /* Formatação de texto markdown */
@@ -388,12 +409,20 @@ body {
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     align-self: flex-end;
+    max-width: 50%; /* Reduzido ainda mais para preservar logo */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .bot-message {
     background-color: var(--chat-bot-bg);
     margin-right: auto;
     align-self: flex-start;
+    max-width: 70%; /* Reduzido para preservar espaço */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .input-area {
@@ -865,5 +894,76 @@ body {
     
     .chat-container {
         width: 100%;
+    }
+    
+    .navbar {
+        padding: 0.5rem 1rem; /* Reduzido para mobile */
+    }
+    
+    .nav-brand {
+        font-size: 1.25rem; /* Menor em mobile */
+    }
+    
+    .nav-items {
+        gap: 0.5rem; /* Menos espaço entre botões */
+    }
+    
+    .nav-btn {
+        padding: 0.3rem 0.6rem; /* Botões menores */
+        font-size: 0.9rem;
+    }
+    
+    .message {
+        max-width: 90%; /* Mais espaço em mobile */
+    }
+    
+    .user-message {
+        max-width: 85%; /* Ajustado para mobile */
+    }
+    
+    .bot-message {
+        max-width: 85%; /* Ajustado para mobile */
+    }
+    
+    .chat-messages {
+        padding: 1rem; /* Menos padding em mobile */
+    }
+    
+    .ai-avatar {
+        width: 28px; /* Avatar menor em mobile */
+        height: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .nav-brand {
+        font-size: 1.1rem;
+    }
+    
+    .nav-btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .user-message {
+        max-width: 90%;
+    }
+    
+    .bot-message {
+        max-width: 90%;
+    }
+    
+    .message {
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+    
+    .ai-avatar {
+        width: 24px;
+        height: 24px;
     }
 }
