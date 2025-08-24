@@ -1,0 +1,52 @@
+.footer {
+  background: var(--secondary-bg);
+  border-top: 1px solid var(--border-color);
+  padding: 1rem 0;
+  width: 100%;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  text-align: center;
+}
+
+.credits {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.developer {
+  color: var(--primary-color);
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.developer:hover {
+  color: var(--accent-color);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .footer {
+    padding: 0.75rem 0;
+  }
+  
+  .container {
+    padding: 0 0.75rem;
+  }
+  
+  .credits {
+    font-size: 0.8rem;
+  }
+}
+
+/* Estados do tema escuro */
+[data-theme="dark"] .footer {
+  border-top-color: var(--border-color);
+}

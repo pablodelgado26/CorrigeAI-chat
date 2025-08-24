@@ -1,0 +1,36 @@
+.imageUpload {
+  display: flex;
+  align-items: center;
+}
+
+.uploadBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 1.25rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.uploadBtn:hover {
+  background: #f3f4f6;
+  color: #6366f1;
+  transform: scale(1.05);
+}
+
+.uploadBtn:active {
+  transform: scale(0.95);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .uploadBtn {
+    padding: 0.75rem;
+    font-size: 1.1rem;
+  }
+}
