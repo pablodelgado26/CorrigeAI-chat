@@ -95,6 +95,8 @@
                 <button class="suggestion-btn" data-suggestion="Plano de aula">📚 Plano de Aula</button>
                 <button class="suggestion-btn" data-suggestion="Exercícios">🧮 Exercícios</button>
                 <button class="suggestion-btn" data-suggestion="Análise de imagem">🔍 Analisar Imagem</button>
+                <button class="suggestion-btn" data-suggestion="Análise de PDF">📄 Analisar PDF</button>
+                <button class="suggestion-btn" data-suggestion="Criar PDF">📄 Criar PDF</button>
                 <button class="suggestion-btn" data-suggestion="Dúvida pedagógica">❓ Dúvida Pedagógica</button>
               </div>
             </div>
@@ -125,31 +127,60 @@
         <div class="input-area">
           <div class="input-container">
             <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+            <input type="file" id="pdfInput" accept=".pdf" style="display: none;" />
+            
             <button id="imageBtn" class="image-btn" title="Anexar imagem">
               <svg viewBox="0 0 24 24" class="image-icon">
                 <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
               </svg>
             </button>
 
+            <button id="pdfBtn" class="pdf-btn" title="Anexar PDF">
+              <svg viewBox="0 0 24 24" class="pdf-icon">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+              </svg>
+            </button>
+
             <input
               type="text"
               id="userInput"
-              placeholder="Mande uma mensagem pro CorrigeAI..."
+              placeholder="Mande uma mensagem pro CorrigeAI... (Digite 'crie um PDF' para gerar documentos)"
             />
+            
             <button id="sendButton">
               <svg viewBox="0 0 24 24" class="send-icon">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
               </svg>
             </button>
           </div>
+          
           <div id="imagePreview" class="image-preview" style="display: none;">
             <img id="previewImg" src="" alt="Preview" />
             <button id="removeImage" class="remove-image">×</button>
           </div>
+          
+          <div id="pdfPreview" class="pdf-preview" style="display: none;">
+            <!-- PDF preview will be populated by JavaScript -->
+          </div>
+          
           <div class="input-footer">Aperte Enter para enviar</div>
         </div>
       </main>
-    </div>
+        </div>
+    <!-- Carregamento das bibliotecas necessárias -->
+    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script>
+        // Verificar se jsPDF foi carregado
+        if (typeof window.jsPDF === 'undefined') {
+            console.warn('jsPDF não foi carregado do unpkg, tentando CDN alternativo...');
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+            script.onload = () => console.log('jsPDF carregado do CDN alternativo');
+            document.head.appendChild(script);
+        } else {
+            console.log('jsPDF carregado com sucesso:', typeof window.jsPDF);
+        }
+    </script>
     <script src="script.js"></script>
   </body>
 </html>
