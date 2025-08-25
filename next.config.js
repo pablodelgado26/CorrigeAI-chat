@@ -8,6 +8,15 @@ const nextConfig = {
   images: {
     domains: [],
     formats: ['image/webp', 'image/avif'],
+    unoptimized: false,
+  },
+  
+  // Configurações para evitar erros de build
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  typescript: {
+    ignoreBuildErrors: false,
   },
   
   // Headers de segurança

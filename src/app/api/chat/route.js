@@ -5,7 +5,7 @@ export async function POST(request) {
     const { message, image } = await request.json()
     
     // Verificar se a API key está configurada
-    const apiKey = process.env.GEMINI_API_KEY
+    const apiKey = process.env.GOOGLE_API_KEY
     if (!apiKey) {
       console.error('API key do Gemini não configurada')
       return NextResponse.json(
