@@ -1,10 +1,11 @@
 .navbar {
-  background: white;
-  border-bottom: 1px solid #e0e0e0;
+  background: var(--primary-bg);
+  border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--shadow-color);
+  transition: all 0.3s ease;
 }
 
 .navContainer {
@@ -20,13 +21,13 @@
 .logo {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #6366f1;
+  color: var(--primary-color);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .logo:hover {
-  color: #5855eb;
+  color: var(--accent-color);
 }
 
 .desktopMenu {
@@ -35,7 +36,7 @@
 }
 
 .navLink {
-  color: #4b5563;
+  color: var(--text-secondary);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s;
@@ -44,7 +45,7 @@
 }
 
 .navLink:hover {
-  color: #6366f1;
+  color: var(--primary-color);
 }
 
 .navLink::after {
@@ -54,7 +55,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: #6366f1;
+  background: var(--primary-color);
   transition: width 0.3s ease;
 }
 
@@ -78,7 +79,7 @@
 .mobileMenuBtn span {
   width: 25px;
   height: 3px;
-  background: #374151;
+  background: var(--text-primary);
   border-radius: 3px;
   transition: all 0.3s linear;
   position: relative;
@@ -86,7 +87,7 @@
 }
 
 .mobileMenuBtn:hover span {
-  background: #6366f1;
+  background: var(--primary-color);
 }
 
 /* Responsividade */

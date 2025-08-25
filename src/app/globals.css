@@ -70,6 +70,38 @@ a {
   display: flex;
   flex: 1;
   background: var(--secondary-bg);
+  min-height: calc(100vh - 60px);
+}
+
+/* Responsividade aprimorada */
+@media (max-width: 1200px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .main-content {
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+  
+  html, body {
+    font-size: 14px;
+  }
 }
 
 .min-h-screen {
@@ -85,13 +117,72 @@ a {
   display: none;
 }
 
+.tablet-only {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .desktop-only {
+    display: none;
+  }
+  
+  .tablet-only {
+    display: block;
+  }
+}
+
 @media (max-width: 768px) {
   .desktop-only {
     display: none;
   }
   
+  .tablet-only {
+    display: none;
+  }
+  
   .mobile-only {
     display: block;
+  }
+}
+
+/* Utility classes para spacing responsivo */
+.p-responsive {
+  padding: 1rem;
+}
+
+.m-responsive {
+  margin: 1rem;
+}
+
+.gap-responsive {
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .p-responsive {
+    padding: 0.75rem;
+  }
+  
+  .m-responsive {
+    margin: 0.75rem;
+  }
+  
+  .gap-responsive {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .p-responsive {
+    padding: 0.5rem;
+  }
+  
+  .m-responsive {
+    margin: 0.5rem;
+  }
+  
+  .gap-responsive {
+    gap: 0.5rem;
   }
 }
 
