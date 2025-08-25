@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import ChatMessage from '../ChatMessage'
 import ImageUpload from '../ImageUpload'
 import styles from './ChatContainer.module.css'
 
-export default function ChatContainer() {
+function ChatContainer() {
   const [messages, setMessages] = useState([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -298,3 +298,5 @@ export default function ChatContainer() {
     </main>
   )
 }
+
+export default ChatContainer

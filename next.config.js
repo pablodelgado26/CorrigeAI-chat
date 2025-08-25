@@ -1,7 +1,36 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    // Configurações experimentais se necessário
+  // Otimizações para produção
+  compress: true,
+  poweredByHeader: false,
+  
+  // Configurações de imagem para Vercel
+  images: {
+    domains: [],
+    formats: ['image/webp', 'image/avif'],
+  },
+  
+  // Headers de segurança
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
   },
 };
 

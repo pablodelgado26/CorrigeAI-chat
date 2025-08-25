@@ -1,9 +1,9 @@
 'use client'
 
-import { useRef } from 'react'
+import React, { useRef } from 'react'
 import styles from './ImageUpload.module.css'
 
-export default function ImageUpload({ onImageUpload }) {
+function ImageUpload({ onImageUpload }) {
   const fileInputRef = useRef(null)
 
   const handleFileChange = (event) => {
@@ -41,3 +41,5 @@ export default function ImageUpload({ onImageUpload }) {
     </div>
   )
 }
+
+export default ImageUpload

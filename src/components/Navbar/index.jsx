@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import MobileMenu from '../MobileMenu'
 import styles from './Navbar.module.css'
 
-export default function Navbar() {
+function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   return (
@@ -47,3 +47,5 @@ export default function Navbar() {
     </>
   )
 }
+
+export default Navbar

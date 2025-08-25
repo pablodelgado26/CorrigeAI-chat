@@ -1,4 +1,7 @@
+import React from "react";
 import { Inter } from "next/font/google";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,7 +17,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
-        {children}
+        <div className="app-layout">
+          <Navbar />
+          <main className="main-content">
+            {children}
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );

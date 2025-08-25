@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import styles from './MobileMenu.module.css'
 
-export default function MobileMenu({ isOpen, onClose }) {
+function MobileMenu({ isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('conversas')
 
   const conversas = [
@@ -171,3 +171,5 @@ export default function MobileMenu({ isOpen, onClose }) {
     </div>
   )
 }
+
+export default MobileMenu

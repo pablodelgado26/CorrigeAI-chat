@@ -1,3 +1,4 @@
+import React from 'react'
 import ChatContainer from '../components/ChatContainer'
 import Sidebar from '../components/Sidebar'
 

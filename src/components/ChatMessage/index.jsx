@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import jsPDF from 'jspdf'
 import styles from './ChatMessage.module.css'
 
@@ -38,7 +38,7 @@ function isTitle(line) {
          line.trim().length > 5
 }
 
-export default function ChatMessage({ message }) {
+function ChatMessage({ message }) {
   const [isDownloading, setIsDownloading] = useState(false)
 
   const generatePDF = async () => {
@@ -196,3 +196,5 @@ export default function ChatMessage({ message }) {
     </div>
   )
 }
+
+export default ChatMessage
