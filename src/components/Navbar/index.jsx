@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import MobileMenu from '../MobileMenu'
+import MobileMenu from '../MobileMenu/index.jsx'
 import styles from './Navbar.module.css'
 
 function Navbar() {

@@ -1,7 +1,7 @@
 import React from "react";
 import { Inter } from "next/font/google";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from "../components/Navbar/index.jsx";
+import Footer from "../components/Footer/index.jsx";
 import "./globals.css";
 
 const inter = Inter({

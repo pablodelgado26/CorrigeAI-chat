@@ -1,6 +1,6 @@
 import React from 'react'
-import ChatContainer from '../components/ChatContainer'
-import Sidebar from '../components/Sidebar'
+import ChatContainer from '../components/ChatContainer/index.jsx'
+import Sidebar from '../components/Sidebar/index.jsx'
 
 export default function Home() {
   return (

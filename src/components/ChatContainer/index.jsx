@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import ChatMessage from '../ChatMessage'
-import ImageUpload from '../ImageUpload'
+import ChatMessage from '../ChatMessage/index.jsx'
+import ImageUpload from '../ImageUpload/index.jsx'
 import styles from './ChatContainer.module.css'
 
 function ChatContainer() {
