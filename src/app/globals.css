@@ -47,6 +47,7 @@ body {
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
   line-height: 1.6;
+  height: 100%;
 }
 
 a {
@@ -58,19 +59,22 @@ a {
 .app-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .main-content {
   flex: 1;
   display: flex;
+  height: calc(100vh - 60px - 60px); /* viewport - navbar - footer */
+  overflow: hidden;
 }
 
 .app-container {
   display: flex;
   flex: 1;
   background: var(--secondary-bg);
-  min-height: calc(100vh - 60px);
+  height: 100%;
 }
 
 /* Responsividade aprimorada */
@@ -81,16 +85,23 @@ a {
 }
 
 @media (max-width: 768px) {
+  .app-layout {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height para mobile */
+  }
+  
+  .main-content {
+    height: calc(100vh - 60px - 50px); /* viewport - navbar - footer mobile */
+    height: calc(100dvh - 60px - 50px);
+  }
+  
   .app-container {
     flex-direction: column;
+    height: 100%;
   }
   
   .container {
     padding: 0 1rem;
-  }
-  
-  .main-content {
-    padding: 0;
   }
 }
 

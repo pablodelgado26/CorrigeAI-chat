@@ -6,7 +6,7 @@
   flex-direction: column;
   overflow: hidden;
   transition: all 0.3s ease;
-  height: 100vh;
+  height: 100%;
 }
 
 .sidebarHeader {
