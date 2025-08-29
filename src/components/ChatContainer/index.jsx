@@ -153,13 +153,63 @@ function ChatContainer() {
   const handlePdfCreation = async (text, image) => {
     // Primeiro envia para a IA para gerar o conteúdo
     try {
+      // Verificar se é uma análise de provas
+      const isProofAnalysis = text.toLowerCase().includes('corrija as provas') || 
+                            text.toLowerCase().includes('gabarito') ||
+                            text.toLowerCase().includes('relatório');
+      
+      let prompt = text;
+      if (isProofAnalysis) {
+        prompt = `${text}
+
+INSTRUÇÕES ESPECÍFICAS PARA ANÁLISE DE PROVAS:
+1. Identifique primeiro o GABARITO na primeira página
+2. Para cada prova de aluno, compare as respostas com o gabarito
+3. Conte acertos e erros para cada aluno
+4. Identifique as questões que mais foram erradas
+5. Crie um relatório detalhado com:
+   - Tabela de desempenho individual (nome, acertos, erros, %)
+   - Ranking dos alunos (melhor para pior desempenho)
+   - Análise das questões mais erradas
+   - Estatísticas gerais da turma
+   - Recomendações pedagógicas
+
+FORMATO DO RELATÓRIO:
+# RELATÓRIO DE CORREÇÃO DE PROVAS
+
+## INFORMAÇÕES GERAIS
+- Data da correção: [data atual]
+- Total de alunos: [número]
+- Total de questões: [número]
+
+## DESEMPENHO INDIVIDUAL
+| Posição | Nome do Aluno | Acertos | Erros | Porcentagem |
+|---------|---------------|---------|-------|-------------|
+| 1º | [nome] | X/Y | Z | XX% |
+| 2º | [nome] | X/Y | Z | XX% |
+
+## QUESTÕES MAIS ERRADAS
+| Questão | Nº Erros | % Erros | Gabarito |
+|---------|----------|---------|----------|
+| X | Y | Z% | [resposta] |
+
+## ANÁLISE ESTATÍSTICA
+- Média da turma: XX%
+- Melhor desempenho: [nome] com XX%
+- Alunos que precisam de atenção: [lista]
+- Questões que precisam ser revisadas: [lista]
+
+## RECOMENDAÇÕES PEDAGÓGICAS
+[Sugestões baseadas nos erros mais comuns]`;
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: `${text} (Por favor, gere um conteúdo detalhado e bem estruturado para este PDF)`,
+          message: prompt,
           image: image
         }),
       })
@@ -181,7 +231,8 @@ function ChatContainer() {
         content: data.response,
         timestamp: new Date(),
         hasPdfDownload: true,
-        pdfContent: data.response
+        pdfContent: data.response,
+        isProofAnalysis: isProofAnalysis
       }
       
       setMessages(prev => prev.map(msg => 
@@ -222,6 +273,9 @@ function ChatContainer() {
             <div className={styles.suggestions}>
               <button className={styles.suggestionBtn} onClick={() => setInputValue('Crie um PDF sobre física quântica')}>
                 Crie um PDF sobre física quântica
+              </button>
+              <button className={styles.suggestionBtn} onClick={() => setInputValue('Corrija as provas e crie um relatório detalhado com análise de desempenho')}>
+                Corrigir provas e gerar relatório
               </button>
               <button className={styles.suggestionBtn} onClick={() => setInputValue('Explique conceitos de programação')}>
                 Explique conceitos de programação
