@@ -76,9 +76,19 @@
 
 .messagesHeader {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1rem;
   padding: 0 0.5rem;
+}
+
+.rateLimitInfo {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: var(--secondary-bg);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border-color);
 }
 
 .clearBtn {
@@ -346,5 +356,91 @@
   
   .sendIcon {
     font-size: 1rem;
+  }
+}
+
+/* Toggle de processamento avançado */
+.processingToggle {
+  display: flex;
+  align-items: center;
+  margin: 0 0.5rem;
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggleInput {
+  display: none;
+}
+
+.toggleSlider {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--border-color);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.toggleSlider::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggleInput:checked + .toggleSlider {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+}
+
+.toggleInput:checked + .toggleSlider::before {
+  transform: translateX(20px);
+}
+
+.toggleText {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .processingToggle {
+    margin: 0 0.25rem;
+  }
+  
+  .toggleText {
+    font-size: 0.8rem;
+  }
+  
+  .toggleSlider {
+    width: 38px;
+    height: 20px;
+  }
+  
+  .toggleSlider::before {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .toggleInput:checked + .toggleSlider::before {
+    transform: translateX(18px);
+  }
+}
+
+@media (max-width: 480px) {
+  .toggleText {
+    font-size: 0.75rem;
   }
 }

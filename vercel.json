@@ -2,8 +2,5 @@
   "version": 2,
   "framework": "nextjs",
   "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "env": {
-    "GOOGLE_API_KEY": "AIzaSyBmXICpEOU1V4oLuTcELyRNFehiRcD8aWw"
-  }
+  "installCommand": "npm install"
 }

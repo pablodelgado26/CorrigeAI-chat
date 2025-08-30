@@ -274,6 +274,11 @@ function ChatMessage({ message }) {
     return content
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      // Converter links markdown para HTML clicável
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="message-link">$1</a>')
+      // Converter blocos de código
+      .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+      .replace(/`(.*?)`/g, '<code>$1</code>')
       .replace(/\n/g, '<br>')
   }
 
