@@ -8,7 +8,7 @@ class AzureOpenAIClient:
         # Configurar cliente Azure OpenAI
         self.api_key = os.getenv('AZURE_OPENAI_API_KEY')
         self.endpoint = os.getenv('AZURE_OPENAI_ENDPOINT', 'https://corrigeai.openai.azure.com/')
-        self.deployment_name = 'gpt-4o'
+        self.deployment_name = 'gpt-4o-mini'
         self.api_version = '2024-08-01-preview'
         
         if not self.api_key:

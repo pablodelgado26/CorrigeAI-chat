@@ -8,6 +8,10 @@ from typing import List, Optional
 import tempfile
 import json
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente do arquivo .env
+load_dotenv()
 
 # Importar módulos customizados
 from modules.pdf_processor import PDFProcessor

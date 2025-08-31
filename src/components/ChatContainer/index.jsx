@@ -12,7 +12,6 @@ function ChatContainer() {
   const [uploadedImage, setUploadedImage] = useState(null)
   const [lastRequestTime, setLastRequestTime] = useState(0)
   const [requestCount, setRequestCount] = useState(0)
-  const [useAdvancedProcessing, setUseAdvancedProcessing] = useState(false)
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
 
@@ -65,6 +64,21 @@ function ChatContainer() {
     adjustTextareaHeight()
   }, [inputValue])
 
+  // Função para detectar automaticamente se deve usar processamento avançado
+  const shouldUseAdvancedProcessing = () => {
+    // Sempre usar processamento avançado se houver imagem/arquivo
+    if (uploadedImage) return true
+    
+    // Palavras-chave que indicam necessidade de processamento avançado
+    const advancedKeywords = [
+      'gabarito', 'prova', 'corrig', 'avali', 'quest', 'resposta',
+      'pdf', 'imagem', 'documento', 'analise', 'relatorio'
+    ]
+    
+    const text = inputValue.toLowerCase()
+    return advancedKeywords.some(keyword => text.includes(keyword))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
@@ -104,13 +118,16 @@ function ChatContainer() {
     setIsLoading(true)
 
     try {
+      // Detectar automaticamente se deve usar processamento avançado
+      const useAdvancedProcessing = shouldUseAdvancedProcessing()
+      
       // Verificar se é uma solicitação de PDF ou processamento avançado
       if (inputValue.toLowerCase().includes('crie um pdf') || useAdvancedProcessing) {
         const botMessage = {
           id: Date.now() + 1,
           type: 'bot',
           content: useAdvancedProcessing 
-            ? 'Usando processamento avançado com OCR e análise profissional. Analisando documento...' 
+            ? '🔬 **Modo Avançado Ativado**\n\nUsando OCR + IA para análise profissional. Processando documento...' 
             : 'Analisando as imagens das provas e comparando com o gabarito... Por favor, aguarde enquanto faço a correção visual detalhada.',
           timestamp: new Date(),
           isGeneratingPdf: true
@@ -574,21 +591,6 @@ ${data.text || 'Nenhum texto detectado'}
             className={styles.messageInput}
             rows={1}
           />
-          
-          <div className={styles.processingToggle}>
-            <label className={styles.toggleLabel}>
-              <input
-                type="checkbox"
-                checked={useAdvancedProcessing}
-                onChange={(e) => setUseAdvancedProcessing(e.target.checked)}
-                className={styles.toggleInput}
-              />
-              <span className={styles.toggleSlider}></span>
-              <span className={styles.toggleText}>
-                🔬 Modo Avançado (OCR + IA)
-              </span>
-            </label>
-          </div>
           
           <button 
             type="submit" 

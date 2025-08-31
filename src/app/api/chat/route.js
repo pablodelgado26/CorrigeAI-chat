@@ -62,8 +62,8 @@ export async function POST(request) {
     }
 
     // Configurar a requisição para Azure OpenAI
-    const deploymentName = 'gpt-4o' // Deployment correto configurado no Azure
-    const apiVersion = '2024-02-15-preview'
+    const deploymentName = 'o4-mini' // Deployment correto no Azure OpenAI
+    const apiVersion = '2025-01-01-preview'
     const azureUrl = `${endpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`
     
     // Preparar mensagens para Azure OpenAI
@@ -112,11 +112,7 @@ export async function POST(request) {
 
     let requestBody = {
       messages: messages,
-      max_tokens: 4000,
-      temperature: 0.3,
-      top_p: 0.95,
-      frequency_penalty: 0,
-      presence_penalty: 0
+      max_completion_tokens: 4000
     }
 
     console.log('Enviando requisição para Azure OpenAI...')
