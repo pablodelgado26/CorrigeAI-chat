@@ -40,6 +40,7 @@ function isTitle(line) {
 
 function ChatMessage({ message }) {
   const [isDownloading, setIsDownloading] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
   const generatePDF = async () => {
     if (!message.pdfContent) return
@@ -288,6 +289,38 @@ function ChatMessage({ message }) {
         {message.image && (
           <div className={styles.imageContainer}>
             <img src={message.image} alt="Imagem enviada" className={styles.messageImage} />
+          </div>
+        )}
+        
+        {message.generatedImageUrl && !imageError && (
+          <div className={styles.imageContainer}>
+            <img 
+              src={message.generatedImageUrl} 
+              alt="Imagem gerada por IA" 
+              className={styles.messageImage}
+              onError={() => setImageError(true)}
+              onLoad={() => setImageError(false)}
+            />
+            <div className={styles.imageCaption}>
+              🎨 Imagem gerada por IA
+            </div>
+          </div>
+        )}
+        
+        {message.generatedImageUrl && imageError && (
+          <div className={styles.imageContainer}>
+            <div className={styles.imageError}>
+              <span className={styles.errorIcon}>🖼️</span>
+              <p>Não foi possível carregar a imagem</p>
+              <a 
+                href={message.generatedImageUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={styles.imageLink}
+              >
+                📎 Abrir imagem em nova aba
+              </a>
+            </div>
           </div>
         )}
         

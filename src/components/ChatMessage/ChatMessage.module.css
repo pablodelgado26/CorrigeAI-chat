@@ -44,6 +44,45 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.imageCaption {
+  font-size: 0.8rem;
+  color: #64748b;
+  text-align: center;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.imageError {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+  color: #dc2626;
+}
+
+.errorIcon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.imageLink {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+
+.imageLink:hover {
+  background: #2563eb;
+}
+
 .messageText {
   line-height: 1.6;
   font-size: 0.95rem;

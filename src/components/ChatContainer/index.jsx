@@ -69,14 +69,9 @@ function ChatContainer() {
     // Sempre usar processamento avançado se houver imagem/arquivo
     if (uploadedImage) return true
     
-    // Palavras-chave que indicam necessidade de processamento avançado
-    const advancedKeywords = [
-      'gabarito', 'prova', 'corrig', 'avali', 'quest', 'resposta',
-      'pdf', 'imagem', 'documento', 'analise', 'relatorio'
-    ]
-    
-    const text = inputValue.toLowerCase()
-    return advancedKeywords.some(keyword => text.includes(keyword))
+    // Se não há imagem, não usar processamento avançado
+    // (isso permitirá que "crie um pdf" use handlePdfCreation)
+    return false
   }
 
   const handleSubmit = async (e) => {
@@ -121,14 +116,21 @@ function ChatContainer() {
       // Detectar automaticamente se deve usar processamento avançado
       const useAdvancedProcessing = shouldUseAdvancedProcessing()
       
+      // Detectar solicitações específicas de PDF (mais específicas)
+      const isPdfRequest = inputValue.toLowerCase().includes('crie um pdf') || 
+                          inputValue.toLowerCase().includes('criar pdf') ||
+                          inputValue.toLowerCase().includes('gerar pdf') ||
+                          inputValue.toLowerCase().includes('relatório pdf') ||
+                          inputValue.toLowerCase().includes('documento pdf')
+      
       // Verificar se é uma solicitação de PDF ou processamento avançado
-      if (inputValue.toLowerCase().includes('crie um pdf') || useAdvancedProcessing) {
+      if (isPdfRequest || useAdvancedProcessing) {
         const botMessage = {
           id: Date.now() + 1,
           type: 'bot',
           content: useAdvancedProcessing 
             ? '🔬 **Modo Avançado Ativado**\n\nUsando OCR + IA para análise profissional. Processando documento...' 
-            : 'Analisando as imagens das provas e comparando com o gabarito... Por favor, aguarde enquanto faço a correção visual detalhada.',
+            : '📄 **Gerando PDF**\n\nCriando relatório personalizado baseado na sua solicitação...',
           timestamp: new Date(),
           isGeneratingPdf: true
         }
@@ -184,7 +186,9 @@ function ChatContainer() {
         id: Date.now() + 1,
         type: 'bot',
         content: data.response,
-        timestamp: new Date()
+        timestamp: new Date(),
+        // Se é geração de imagem, incluir a URL da imagem
+        generatedImageUrl: data.isImageGeneration ? data.imageUrl : null
       }
       
       setMessages(prev => [...prev, botMessage])

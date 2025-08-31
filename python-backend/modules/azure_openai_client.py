@@ -1,24 +1,25 @@
-import openai
 import os
 from typing import Dict, List, Optional
 import json
+from openai import AzureOpenAI
 
 class AzureOpenAIClient:
     def __init__(self):
         # Configurar cliente Azure OpenAI
         self.api_key = os.getenv('AZURE_OPENAI_API_KEY')
-        self.endpoint = os.getenv('AZURE_OPENAI_ENDPOINT', 'https://corrigeai.openai.azure.com/')
-        self.deployment_name = 'gpt-4o-mini'
-        self.api_version = '2024-08-01-preview'
+        self.endpoint = os.getenv('AZURE_OPENAI_ENDPOINT', 'https://openai-sesi.openai.azure.com')
+        self.deployment_name = os.getenv('AZURE_OPENAI_DEPLOYMENT', 'o4-mini')
+        self.api_version = os.getenv('AZURE_OPENAI_API_VERSION', '2025-01-01-preview')
         
         if not self.api_key:
             raise ValueError("AZURE_OPENAI_API_KEY environment variable is required")
         
-        # Configurar cliente
-        openai.api_type = "azure"
-        openai.api_base = self.endpoint
-        openai.api_version = self.api_version
-        openai.api_key = self.api_key
+        # Configurar cliente usando nova sintaxe
+        self.client = AzureOpenAI(
+            api_key=self.api_key,
+            azure_endpoint=self.endpoint,
+            api_version=self.api_version,
+        )
     
     async def analyze_exam_results(self, answer_key: Dict, students_results: List[Dict], instructions: str) -> Dict:
         """
@@ -41,8 +42,8 @@ class AzureOpenAIClient:
             prompt = self._create_analysis_prompt(analysis_data, instructions)
             
             # Fazer requisição
-            response = openai.ChatCompletion.create(
-                engine=self.deployment_name,
+            response = self.client.chat.completions.create(
+                model=self.deployment_name,
                 messages=[
                     {
                         "role": "system",
@@ -53,8 +54,7 @@ class AzureOpenAIClient:
                         "content": prompt
                     }
                 ],
-                max_tokens=2000,
-                temperature=0.3
+                max_completion_tokens=2000
             )
             
             # Processar resposta
@@ -93,8 +93,8 @@ class AzureOpenAIClient:
             Retorne apenas o texto corrigido, mantendo numeração e formatação.
             """
             
-            response = openai.ChatCompletion.create(
-                engine=self.deployment_name,
+            response = self.client.chat.completions.create(
+                model=self.deployment_name,
                 messages=[
                     {
                         "role": "system",
@@ -105,8 +105,7 @@ class AzureOpenAIClient:
                         "content": prompt
                     }
                 ],
-                max_tokens=1500,
-                temperature=0.1
+                max_completion_tokens=1500
             )
             
             return response.choices[0].message.content.strip()
@@ -132,8 +131,8 @@ class AzureOpenAIClient:
             Retorne um JSON estruturado com os dados encontrados.
             """
             
-            response = openai.ChatCompletion.create(
-                engine=self.deployment_name,
+            response = self.client.chat.completions.create(
+                model=self.deployment_name,
                 messages=[
                     {
                         "role": "system",
@@ -156,8 +155,7 @@ class AzureOpenAIClient:
                         ]
                     }
                 ],
-                max_tokens=1000,
-                temperature=0.2
+                max_completion_tokens=1000
             )
             
             analysis_text = response.choices[0].message.content
