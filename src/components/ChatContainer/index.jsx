@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import ChatMessage from '../ChatMessage/index.jsx'
 import ImageUpload from '../ImageUpload/index.jsx'
+import ErrorMessage from '../ErrorMessage/index.jsx'
 import styles from './ChatContainer.module.css'
 
 function ChatContainer() {
@@ -12,6 +13,8 @@ function ChatContainer() {
   const [uploadedImage, setUploadedImage] = useState(null)
   const [lastRequestTime, setLastRequestTime] = useState(0)
   const [requestCount, setRequestCount] = useState(0)
+  const [currentConversationId, setCurrentConversationId] = useState(null)
+  const [lastUserMessage, setLastUserMessage] = useState(null)
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
 
@@ -21,27 +24,126 @@ function ChatContainer() {
 
   // Carregar conversas salvas ao inicializar
   useEffect(() => {
-    const savedMessages = localStorage.getItem('corrigeai-messages')
-    if (savedMessages) {
-      try {
+    initializeConversation()
+  }, [])
+
+  const initializeConversation = async () => {
+    try {
+      // Tentar carregar conversa do localStorage primeiro (migração gradual)
+      const savedMessages = localStorage.getItem('corrigeai-messages')
+      if (savedMessages) {
         const parsedMessages = JSON.parse(savedMessages)
         setMessages(parsedMessages)
-      } catch (error) {
-        console.error('Erro ao carregar mensagens salvas:', error)
+        
+        // Criar nova conversa no banco se há mensagens
+        if (parsedMessages.length > 0) {
+          const newConversation = await createNewConversation('Conversa Migrada')
+          if (newConversation) {
+            setCurrentConversationId(newConversation.id)
+            // Migrar mensagens para o banco
+            for (const msg of parsedMessages) {
+              await saveMessageToDatabase(newConversation.id, msg)
+            }
+            // Limpar localStorage após migração
+            localStorage.removeItem('corrigeai-messages')
+          }
+        }
+      } else {
+        // Criar nova conversa se não há dados
+        const newConversation = await createNewConversation()
+        if (newConversation) {
+          setCurrentConversationId(newConversation.id)
+        }
       }
+    } catch (error) {
+      console.error('Erro ao inicializar conversa:', error)
     }
-  }, [])
+  }
+
+  const createNewConversation = async (title = 'Nova Conversa') => {
+    try {
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+      })
+      
+      if (response.ok) {
+        return await response.json()
+      }
+    } catch (error) {
+      console.error('Erro ao criar conversa:', error)
+    }
+    return null
+  }
+
+  const saveMessageToDatabase = async (conversationId, message) => {
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: message.content,
+          type: message.type.toUpperCase(),
+          image: message.image,
+          generatedImageUrl: message.generatedImageUrl,
+          hasPdfDownload: message.hasPdfDownload || false,
+          pdfContent: message.pdfContent,
+          isProofAnalysis: message.isProofAnalysis || false
+        })
+      })
+      
+      if (response.ok) {
+        return await response.json()
+      }
+    } catch (error) {
+      console.error('Erro ao salvar mensagem:', error)
+    }
+    return null
+  }
 
   // Salvar mensagens quando mudarem
   useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem('corrigeai-messages', JSON.stringify(messages))
+    if (messages.length > 0 && currentConversationId) {
+      // Salvar última mensagem no banco se ainda não foi salva
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage && !lastMessage.savedToDb) {
+        saveMessageToDatabase(currentConversationId, lastMessage)
+          .then(() => {
+            // Marcar como salva
+            setMessages(prev => prev.map(msg => 
+              msg.id === lastMessage.id ? { ...msg, savedToDb: true } : msg
+            ))
+          })
+      }
     }
-  }, [messages])
+  }, [messages, currentConversationId])
 
-  const clearConversation = () => {
-    setMessages([])
-    localStorage.removeItem('corrigeai-messages')
+  const clearConversation = async () => {
+    try {
+      if (currentConversationId) {
+        // Deletar conversa do banco
+        const response = await fetch(`/api/conversations/${currentConversationId}`, {
+          method: 'DELETE'
+        })
+        
+        if (response.ok) {
+          // Criar nova conversa
+          const newConversation = await createNewConversation()
+          if (newConversation) {
+            setCurrentConversationId(newConversation.id)
+          }
+        }
+      }
+      
+      setMessages([])
+      localStorage.removeItem('corrigeai-messages')
+    } catch (error) {
+      console.error('Erro ao limpar conversa:', error)
+      // Fallback para limpeza local
+      setMessages([])
+      localStorage.removeItem('corrigeai-messages')
+    }
   }
 
   const scrollToBottom = () => {
@@ -108,6 +210,7 @@ function ChatContainer() {
     }
 
     setMessages(prev => [...prev, userMessage])
+    setLastUserMessage({ text: inputValue, image: uploadedImage }) // Salvar para retry
     setInputValue('')
     setUploadedImage(null)
     setIsLoading(true)
@@ -175,6 +278,13 @@ function ChatContainer() {
       const data = await response.json()
       
       if (!response.ok) {
+        if (response.status === 503) {
+          throw new Error('Serviço temporariamente indisponível. Aguarde alguns segundos e tente novamente.')
+        } else if (response.status === 429) {
+          throw new Error('Muitas requisições. Aguarde um momento e tente novamente.')
+        } else if (response.status >= 500) {
+          throw new Error('Erro interno do servidor. Tente novamente em alguns minutos.')
+        }
         throw new Error(data.error || 'Erro na comunicação com o servidor')
       }
 
@@ -195,13 +305,53 @@ function ChatContainer() {
     } catch (error) {
       console.error('Erro ao comunicar com IA:', error)
       
-      const errorMessage = {
+      let errorMessage = 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.'
+      let errorType = 'error'
+      
+      // Detectar tipos específicos de erro
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.'
+        errorType = 'network'
+      } else if (error.message.includes('timeout') || error.message.includes('Timeout')) {
+        errorMessage = 'Timeout na conexão. O servidor demorou para responder. Tente novamente.'
+        errorType = 'timeout'
+      } else if (error.message.includes('503') || error.message.includes('temporariamente indisponível')) {
+        errorMessage = 'Serviço temporariamente indisponível. Aguarde alguns segundos e tente novamente.'
+        errorType = 'server'
+      } else if (error.message.includes('429')) {
+        errorMessage = 'Muitas requisições simultâneas. Aguarde um momento e tente novamente.'
+        errorType = 'server'
+      } else if (error.message) {
+        errorMessage = error.message
+        // Manter errorType como 'error' para mensagens customizadas
+      }
+      
+      const botErrorMessage = {
         id: Date.now() + 1,
         type: 'bot',
-        content: error.message || 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.',
-        timestamp: new Date()
+        content: errorMessage,
+        timestamp: new Date(),
+        isError: true,
+        errorType: errorType
       }
-      setMessages(prev => [...prev, errorMessage])
+      setMessages(prev => [...prev, botErrorMessage])
+    }
+  }
+
+  const handleRetry = async () => {
+    if (!lastUserMessage || isLoading) return
+    
+    // Remover a última mensagem de erro
+    setMessages(prev => prev.filter(msg => !msg.isError))
+    
+    // Reenviar a última mensagem
+    setIsLoading(true)
+    try {
+      await sendToGemini(lastUserMessage.text, lastUserMessage.image)
+    } catch (error) {
+      console.error('Erro no retry:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -553,7 +703,16 @@ ${data.text || 'Nenhum texto detectado'}
               </button>
             </div>
             {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
+              message.isError ? (
+                <ErrorMessage
+                  key={message.id}
+                  message={message.content}
+                  type={message.errorType}
+                  onRetry={handleRetry}
+                />
+              ) : (
+                <ChatMessage key={message.id} message={message} />
+              )
             ))}
             {isLoading && (
               <div className={styles.loadingMessage}>

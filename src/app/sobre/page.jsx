@@ -1,7 +1,53 @@
-import React from 'react'
+'use client'
+
+import React, { useEffect } from 'react'
 import styles from './page.module.css'
 
-export default function SobrePage() {
+function SobrePage() {
+  useEffect(() => {
+    // Inicializar otimizações de scroll
+    const initScrollOptimizations = () => {
+      // Observer para animações
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add(styles.visible)
+          }
+        })
+      }, { 
+        threshold: 0.1,
+        rootMargin: '50px'
+      })
+
+      // Observar todas as seções
+      document.querySelectorAll('.' + styles.section).forEach(section => {
+        observer.observe(section)
+      })
+
+      // Smooth scroll para links internos
+      document.querySelectorAll('a[href^="#"]').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault()
+          const target = document.querySelector(link.getAttribute('href'))
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            })
+          }
+        })
+      })
+
+      // Cleanup function
+      return () => {
+        observer.disconnect()
+      }
+    }
+
+    const cleanup = initScrollOptimizations()
+    return cleanup
+  }, [])
+
   return (
     <div className={styles.container}>
       <div className={styles.content}>
@@ -217,3 +263,5 @@ export default function SobrePage() {
     </div>
   )
 }
+
+export default SobrePage

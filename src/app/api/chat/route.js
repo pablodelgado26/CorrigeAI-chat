@@ -11,8 +11,9 @@ function generateRequestHash(message, imageSize) {
 // Função para detectar solicitações de geração de imagem
 function isImageGenerationRequest(message) {
   const imageKeywords = [
-    'crie uma imagem', 'criar imagem', 'gerar imagem', 'gere uma imagem',
-    'faça uma imagem', 'desenhe', 'ilustre', 'create image', 'generate image'
+    'crie uma imagem', 'crie a imagem', 'criar imagem', 'gerar imagem', 'gere uma imagem',
+    'faça uma imagem', 'faça a imagem', 'desenhe', 'ilustre', 'create image', 'generate image',
+    'crie um desenho', 'faça um desenho', 'gere um desenho'
   ]
   
   const lowerMessage = message.toLowerCase()
@@ -22,14 +23,20 @@ function isImageGenerationRequest(message) {
 // Função para gerar imagem usando Pollinations AI (gratuita)
 async function generateImage(prompt) {
   try {
+    console.log('=== INICIANDO GERAÇÃO DE IMAGEM ===')
+    console.log('Prompt original:', prompt)
+    
     // Traduzir e otimizar prompt
     let optimizedPrompt = prompt
-      .replace(/crie uma imagem de|criar imagem de|gerar imagem de|gere uma imagem de|faça uma imagem de|desenhe|ilustre/gi, '')
+      .replace(/crie uma imagem de|crie a imagem de|criar imagem de|gerar imagem de|gere uma imagem de|faça uma imagem de|faça a imagem de|desenhe|ilustre|crie um desenho de|faça um desenho de|gere um desenho de/gi, '')
       .trim()
+    
+    console.log('Prompt após limpeza:', optimizedPrompt)
     
     // Se o prompt estiver vazio, usar um padrão
     if (!optimizedPrompt) {
       optimizedPrompt = "beautiful landscape"
+      console.log('Prompt vazio, usando padrão:', optimizedPrompt)
     }
     
     // Traduzir palavras básicas do português para inglês
@@ -47,55 +54,144 @@ async function generateImage(prompt) {
       'cidade': 'city',
       'futurista': 'futuristic',
       'lindo': 'beautiful',
-      'bonito': 'beautiful'
+      'bonito': 'beautiful',
+      'casa': 'house',
+      'carro': 'car',
+      'árvore': 'tree',
+      'flor': 'flower',
+      'céu': 'sky',
+      'nuvem': 'cloud',
+      'rio': 'river',
+      'lago': 'lake',
+      'fazenda': 'farm',
+      'campo': 'field',
+      'jardim': 'garden',
+      'parque': 'park',
+      'rua': 'street',
+      'estrada': 'road',
+      'ponte': 'bridge',
+      'castelo': 'castle',
+      'igreja': 'church',
+      'prédio': 'building',
+      'animal': 'animal',
+      'pássaro': 'bird',
+      'peixe': 'fish',
+      'cavalo': 'horse',
+      'vaca': 'cow',
+      'porco': 'pig',
+      'galinha': 'chicken',
+      'pessoa': 'person',
+      'homem': 'man',
+      'mulher': 'woman',
+      'criança': 'child',
+      'família': 'family',
+      'amigo': 'friend',
+      'comida': 'food',
+      'fruta': 'fruit',
+      'verdura': 'vegetable',
+      'maçã': 'apple',
+      'banana': 'banana',
+      'laranja': 'orange',
+      'uva': 'grape',
+      'morango': 'strawberry',
+      'fantasia': 'fantasy',
+      'magia': 'magic',
+      'dragão': 'dragon',
+      'unicórnio': 'unicorn',
+      'fada': 'fairy',
+      'bruxa': 'witch',
+      'robô': 'robot',
+      'nave espacial': 'spaceship',
+      'planeta': 'planet',
+      'estrela': 'star',
+      'lua': 'moon',
+      'sol': 'sun',
+      'cor': 'color',
+      'azul': 'blue',
+      'verde': 'green',
+      'vermelho': 'red',
+      'amarelo': 'yellow',
+      'roxo': 'purple',
+      'rosa': 'pink',
+      'preto': 'black',
+      'branco': 'white',
+      'cinza': 'gray'
     }
     
     Object.entries(translations).forEach(([pt, en]) => {
       optimizedPrompt = optimizedPrompt.replace(new RegExp(pt, 'gi'), en)
     })
     
-    // URL da API Pollinations (gratuita) - usando parâmetros mais estáveis
-    const externalImageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(optimizedPrompt)}?width=512&height=512`
+    console.log('Prompt após tradução:', optimizedPrompt)
     
-    console.log('Gerando imagem com URL:', externalImageUrl)
+    // URL da API Pollinations (gratuita) - usando parâmetros mais estáveis
+    const externalImageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(optimizedPrompt)}?width=512&height=512&seed=${Date.now()}`
+    
+    console.log('URL da imagem externa:', externalImageUrl)
     
     // Validar se a URL está acessível
     try {
-      const testResponse = await fetch(externalImageUrl, { method: 'HEAD' })
+      console.log('Testando acesso à URL da imagem...')
+      const testResponse = await fetch(externalImageUrl, { 
+        method: 'HEAD',
+        timeout: 10000  // 10 segundos de timeout
+      })
+      console.log('Status da resposta do teste:', testResponse.status)
+      console.log('Headers da resposta:', Object.fromEntries(testResponse.headers.entries()))
+      
       if (!testResponse.ok) {
         throw new Error(`Erro ${testResponse.status} ao gerar imagem`)
       }
+      
+      // Se o teste passou, retornar a URL direta (sem proxy)
+      console.log('URL do proxy interno:', `/api/image-proxy?url=${encodeURIComponent(externalImageUrl)}`)
+      console.log('=== GERAÇÃO DE IMAGEM CONCLUÍDA ===')
+      
+      return {
+        success: true,
+        imageUrl: externalImageUrl, // Usar URL direta ao invés do proxy
+        prompt: optimizedPrompt
+      }
+      
     } catch (error) {
       console.error('Erro ao validar URL da imagem:', error)
+      console.error('Stack trace:', error.stack)
+      
+      // Tentar retornar a URL direta mesmo com erro de validação
+      console.log('Tentando retornar URL direta mesmo com erro de validação...')
+      
       return {
-        success: false,
-        error: 'Falha na geração da imagem. Tente novamente.'
+        success: true,
+        imageUrl: externalImageUrl, // URL direta
+        prompt: optimizedPrompt,
+        warning: 'Imagem gerada sem validação prévia'
       }
     }
     
-    // Usar proxy interno para evitar problemas de CORS
-    const imageUrl = `/api/image-proxy?url=${encodeURIComponent(externalImageUrl)}`
-    
-    return {
-      success: true,
-      imageUrl: imageUrl,
-      prompt: optimizedPrompt
-    }
-    
   } catch (error) {
-    console.error('Erro ao gerar imagem:', error)
+    console.error('ERRO GERAL na geração de imagem:', error)
+    console.error('Stack trace completo:', error.stack)
     return {
       success: false,
-      error: error.message
+      error: error.message || 'Falha na geração da imagem. Tente novamente.'
     }
   }
 }
 
 // Função para retry com backoff exponencial
-async function fetchWithRetry(url, options, maxRetries = 3) {
+async function fetchWithRetry(url, options, maxRetries = 3, timeoutMs = 30000) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const response = await fetch(url, options)
+      // Criar AbortController para timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+      
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeoutId)
       
       if (response.status === 429) {
         const waitTime = Math.pow(2, attempt) * 1000 // 2s, 4s, 8s
@@ -109,6 +205,10 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
       
       return response
     } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log(`Timeout na tentativa ${attempt}/${maxRetries}`)
+      }
+      
       if (attempt === maxRetries) throw error
       
       const waitTime = Math.pow(2, attempt) * 1000
@@ -122,9 +222,13 @@ export async function POST(request) {
   try {
     const { message, image } = await request.json()
     
+    console.log('=== PROCESSANDO MENSAGEM ===')
+    console.log('Mensagem recebida:', message)
+    console.log('Teste de geração de imagem:', isImageGenerationRequest(message))
+    
     // Verificar se é uma solicitação de geração de imagem
     if (isImageGenerationRequest(message)) {
-      console.log('Detectada solicitação de geração de imagem')
+      console.log('✅ Detectada solicitação de geração de imagem')
       
       const imageResult = await generateImage(message)
       
@@ -296,10 +400,24 @@ export async function POST(request) {
   } catch (error) {
     console.error('Erro na API do chat:', error)
     
-    // Verificar se é um erro de rede
+    // Verificar tipos específicos de erro
+    if (error.name === 'AbortError') {
+      return NextResponse.json(
+        { error: 'Timeout na conexão. O servidor demorou para responder. Tente novamente.' },
+        { status: 503 }
+      )
+    }
+    
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       return NextResponse.json(
         { error: 'Erro de conexão. Verifique sua internet e tente novamente.' },
+        { status: 503 }
+      )
+    }
+    
+    if (error.code === 'UND_ERR_CONNECT_TIMEOUT') {
+      return NextResponse.json(
+        { error: 'Timeout na conexão com o serviço de IA. Tente novamente.' },
         { status: 503 }
       )
     }

@@ -42,6 +42,46 @@ function ChatMessage({ message }) {
   const [isDownloading, setIsDownloading] = useState(false)
   const [imageError, setImageError] = useState(false)
 
+  // Debug: verificar se a URL da imagem está chegando
+  if (message.generatedImageUrl) {
+    console.log('🖼️ URL da imagem recebida:', message.generatedImageUrl)
+  }
+
+  const downloadImage = async (imageUrl) => {
+    try {
+      setIsDownloading(true)
+      
+      // Criar um elemento a temporário para download
+      const response = await fetch(imageUrl)
+      const blob = await response.blob()
+      
+      // Criar URL do blob
+      const url = window.URL.createObjectURL(blob)
+      
+      // Criar elemento de link para download
+      const link = document.createElement('a')
+      link.href = url
+      
+      // Gerar nome do arquivo com timestamp
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+      link.download = `imagem-gerada-${timestamp}.png`
+      
+      // Simular clique para download
+      document.body.appendChild(link)
+      link.click()
+      
+      // Limpar
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+    } catch (error) {
+      console.error('Erro ao baixar imagem:', error)
+      alert('Erro ao baixar imagem. Tente abrir em nova aba.')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
   const generatePDF = async () => {
     if (!message.pdfContent) return
     
@@ -303,6 +343,22 @@ function ChatMessage({ message }) {
             />
             <div className={styles.imageCaption}>
               🎨 Imagem gerada por IA
+            </div>
+            <div className={styles.imageActions}>
+              <button 
+                className={styles.downloadImageBtn}
+                onClick={() => downloadImage(message.generatedImageUrl)}
+              >
+                💾 Baixar Imagem
+              </button>
+              <a 
+                href={message.generatedImageUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={styles.openImageBtn}
+              >
+                🔗 Abrir em Nova Aba
+              </a>
             </div>
           </div>
         )}

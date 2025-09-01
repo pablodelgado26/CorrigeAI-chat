@@ -1,0 +1,97 @@
+.errorContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border-left: 4px solid;
+  background: #fafafa;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.errorContainer.error {
+  border-left-color: #f56565;
+  background: #fed7d7;
+  color: #742a2a;
+}
+
+.errorContainer.timeout {
+  border-left-color: #ed8936;
+  background: #feebc8;
+  color: #7b341e;
+}
+
+.errorContainer.network {
+  border-left-color: #4299e1;
+  background: #bee3f8;
+  color: #2a69ac;
+}
+
+.errorContainer.server {
+  border-left-color: #9f7aea;
+  background: #e9d8fd;
+  color: #553c9a;
+}
+
+.errorIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.errorContent {
+  flex: 1;
+}
+
+.errorMessage {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.errorAction {
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.retryButton {
+  background: #4299e1;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.retryButton:hover {
+  background: #3182ce;
+}
+
+.retryButton:active {
+  background: #2c5aa0;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .errorContainer {
+    padding: 12px;
+    gap: 8px;
+  }
+  
+  .errorIcon {
+    font-size: 16px;
+  }
+  
+  .errorMessage {
+    font-size: 13px;
+  }
+  
+  .errorAction {
+    font-size: 12px;
+  }
+}

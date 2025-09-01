@@ -1,9 +1,38 @@
 .container {
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   max-width: 1000px;
   margin: 0 auto;
   padding: 2rem 1rem;
   background: var(--primary-bg);
-  flex: 1;
+  
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  
+  /* Customizar scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 #f1f5f9;
+}
+
+/* Scrollbar personalizada para WebKit */
+.container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.container::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 10px;
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
 }
 
 .content {
@@ -11,6 +40,9 @@
   border-radius: 12px;
   padding: 3rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  max-width: 100%;
+  word-wrap: break-word;
 }
 
 .header {
@@ -35,6 +67,25 @@
 
 .section {
   margin-bottom: 3rem;
+  animation: fadeInUp 0.6s ease;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .section h2 {
@@ -256,6 +307,8 @@
 @media (max-width: 768px) {
   .container {
     padding: 1rem 0.75rem;
+    max-height: 100vh;
+    overflow-y: auto;
   }
   
   .content {

@@ -71,3 +71,5 @@ python-backend/env/
 # Reports and generated files
 python-backend/reports/*.pdf
 python-backend/reports/*.json
+
+/src/generated/prisma

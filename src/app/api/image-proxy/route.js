@@ -5,19 +5,36 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url)
     const imageUrl = searchParams.get('url')
     
+    console.log('=== PROXY DE IMAGEM INICIADO ===')
+    console.log('URL solicitada:', imageUrl)
+    
     if (!imageUrl) {
+      console.error('URL da imagem não fornecida')
       return NextResponse.json({ error: 'URL da imagem é obrigatória' }, { status: 400 })
     }
     
     // Buscar a imagem
-    const response = await fetch(imageUrl)
+    console.log('Fazendo fetch da imagem...')
+    const response = await fetch(imageUrl, {
+      timeout: 15000 // 15 segundos de timeout
+    })
+    
+    console.log('Status da resposta:', response.status)
+    console.log('Content-Type:', response.headers.get('content-type'))
     
     if (!response.ok) {
-      return NextResponse.json({ error: 'Erro ao buscar imagem' }, { status: response.status })
+      console.error(`Erro ao buscar imagem: ${response.status} ${response.statusText}`)
+      return NextResponse.json({ 
+        error: `Erro ao buscar imagem: ${response.status}` 
+      }, { status: response.status })
     }
     
     // Obter o buffer da imagem
+    console.log('Convertendo para buffer...')
     const imageBuffer = await response.arrayBuffer()
+    console.log('Tamanho do buffer:', imageBuffer.byteLength)
+    
+    console.log('=== PROXY DE IMAGEM CONCLUÍDO ===')
     
     // Retornar a imagem com headers apropriados
     return new NextResponse(imageBuffer, {
@@ -30,7 +47,11 @@ export async function GET(request) {
     })
     
   } catch (error) {
-    console.error('Erro no proxy de imagem:', error)
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+    console.error('ERRO no proxy de imagem:', error)
+    console.error('Stack trace:', error.stack)
+    return NextResponse.json({ 
+      error: 'Erro interno do servidor',
+      details: error.message 
+    }, { status: 500 })
   }
 }
