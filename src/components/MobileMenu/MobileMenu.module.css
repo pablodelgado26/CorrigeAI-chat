@@ -39,10 +39,98 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.userSection {
+  padding: 1.5rem;
+  background: var(--secondary-bg);
   border-bottom: 1px solid var(--border-color);
+}
+
+.userProfile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.userAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   background: var(--primary-color);
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.userName {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.userEmail {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.accountActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.accountBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.accountBtn:hover {
+  background: var(--hover-bg);
+  border-color: var(--primary-color);
+}
+
+.actionIcon {
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.logoutBtn {
+  background: #ef4444;
+  color: white;
+  border: 1px solid #ef4444;
+}
+
+.logoutBtn:hover {
+  background: #dc2626;
+  border-color: #dc2626;
 }
 
 .header h2 {

@@ -63,6 +63,15 @@ a {
   overflow: hidden;
 }
 
+/* Layout específico para páginas de autenticação */
+.auth-page-layout {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .main-content {
   flex: 1;
   display: flex;

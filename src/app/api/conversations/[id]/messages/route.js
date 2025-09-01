@@ -1,38 +1,61 @@
 import { NextResponse } from 'next/server'
-import prisma from '../../../lib/prisma.js'
+import { PrismaClient } from '@prisma/client'
+import { getUserFromToken } from '@/utils/auth'
 
-// POST - Adicionar mensagem à conversa
+const prisma = new PrismaClient()
+
 export async function POST(request, { params }) {
   try {
-    const { id } = await params
+    // Verificar autenticação
+    const authResult = getUserFromToken(request)
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401 }
+      )
+    }
+
+    const userId = authResult.data.userId
+    const { id: conversationId } = await params
     const messageData = await request.json()
+
+    // Verificar se a conversa pertence ao usuário
+    const conversation = await prisma.conversation.findFirst({
+      where: { 
+        id: conversationId,
+        userId 
+      }
+    })
+
+    if (!conversation) {
+      return NextResponse.json(
+        { error: 'Conversa não encontrada' },
+        { status: 404 }
+      )
+    }
 
     const message = await prisma.message.create({
       data: {
-        content: messageData.content,
-        type: messageData.type,
-        image: messageData.image || null,
-        generatedImageUrl: messageData.generatedImageUrl || null,
-        hasPdfDownload: messageData.hasPdfDownload || false,
-        pdfContent: messageData.pdfContent || null,
-        isProofAnalysis: messageData.isProofAnalysis || false,
-        conversationId: id
+        ...messageData,
+        conversationId
       }
     })
 
     // Atualizar timestamp da conversa
     await prisma.conversation.update({
-      where: { id },
+      where: { id: conversationId },
       data: { updatedAt: new Date() }
     })
 
     return NextResponse.json(message)
   } catch (error) {
-    console.error('Erro ao adicionar mensagem:', error)
+    console.error('Erro ao criar mensagem:', error)
     return NextResponse.json(
-      { error: 'Erro ao adicionar mensagem' },
+      { error: 'Erro interno do servidor' },
       { status: 500 }
     )
+  } finally {
+    await prisma.$disconnect()
   }
 }
 

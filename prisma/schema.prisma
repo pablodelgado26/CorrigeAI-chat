@@ -10,33 +10,44 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relacionamento com conversas
+  conversations Conversation[]
+  
+  @@map("users")
+}
+
 model Conversation {
   id        String   @id @default(cuid())
   title     String?
+  userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  messages  Message[]
-
+  
+  // Relacionamentos
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+  
   @@map("conversations")
 }
 
 model Message {
-  id             String       @id @default(cuid())
-  content        String
-  type           MessageType
-  image          String?      // Base64 da imagem enviada
-  generatedImageUrl String?   // URL da imagem gerada
-  hasPdfDownload Boolean     @default(false)
-  pdfContent     String?
-  isProofAnalysis Boolean    @default(false)
-  timestamp      DateTime    @default(now())
+  id             String   @id @default(cuid())
   conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-
+  type           String   // 'user' ou 'bot'
+  content        String
+  imageUrl       String?
+  createdAt      DateTime @default(now())
+  
+  // Relacionamento
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
   @@map("messages")
-}
-
-enum MessageType {
-  USER
-  BOT
 }

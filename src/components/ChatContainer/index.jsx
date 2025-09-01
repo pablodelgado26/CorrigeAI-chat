@@ -1,12 +1,14 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
-import ChatMessage from '../ChatMessage/index.jsx'
-import ImageUpload from '../ImageUpload/index.jsx'
-import ErrorMessage from '../ErrorMessage/index.jsx'
+import React, { useState, useEffect, useRef } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
+import ChatMessage from '../ChatMessage'
+import ImageUpload from '../ImageUpload'
+import ErrorMessage from '../ErrorMessage'
 import styles from './ChatContainer.module.css'
 
 function ChatContainer() {
+  const { getAuthHeaders } = useAuth()
   const [messages, setMessages] = useState([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -15,6 +17,8 @@ function ChatContainer() {
   const [requestCount, setRequestCount] = useState(0)
   const [currentConversationId, setCurrentConversationId] = useState(null)
   const [lastUserMessage, setLastUserMessage] = useState(null)
+  const [error, setError] = useState(null)
+  const [conversationsList, setConversationsList] = useState([])
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
 
@@ -60,28 +64,78 @@ function ChatContainer() {
     }
   }
 
-  const createNewConversation = async (title = 'Nova Conversa') => {
+  const loadConversations = async () => {
     try {
+      const authHeaders = getAuthHeaders()
+      
       const response = await fetch('/api/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title })
+        headers: authHeaders
       })
       
       if (response.ok) {
-        return await response.json()
+        const conversations = await response.json()
+        setConversationsList(conversations)
+      } else if (response.status === 401) {
+        console.error('Erro de autenticação ao carregar conversas')
+        setError({
+          type: 'auth',
+          message: 'Erro de autenticação. Faça login novamente.'
+        })
       }
     } catch (error) {
-      console.error('Erro ao criar conversa:', error)
+      console.error('Erro ao carregar conversas:', error)
     }
-    return null
+  }
+
+    const createNewConversation = async (title = 'Nova Conversa') => {
+    try {
+      const authHeaders = getAuthHeaders()
+      
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders
+        },
+        body: JSON.stringify({ title })
+      })
+
+      if (response.ok) {
+        const newConversation = await response.json()
+        setCurrentConversationId(newConversation.id)
+        setMessages([])
+        loadConversations() // Recarregar lista de conversas
+        return newConversation // Retornar a conversa criada
+      } else if (response.status === 401) {
+        console.error('Erro de autenticação ao criar conversa')
+        setError({
+          type: 'auth',
+          message: 'Erro de autenticação. Faça login novamente.'
+        })
+        return null
+      } else {
+        throw new Error('Erro ao criar conversa')
+      }
+    } catch (error) {
+      console.error('Erro ao criar nova conversa:', error)
+      setError({
+        type: 'network',
+        message: 'Erro ao criar nova conversa. Tente novamente.'
+      })
+      return null
+    }
   }
 
   const saveMessageToDatabase = async (conversationId, message) => {
     try {
+      const authHeaders = getAuthHeaders()
+      
       const response = await fetch(`/api/conversations/${conversationId}/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...authHeaders
+        },
         body: JSON.stringify({
           content: message.content,
           type: message.type.toUpperCase(),
@@ -95,6 +149,12 @@ function ChatContainer() {
       
       if (response.ok) {
         return await response.json()
+      } else if (response.status === 401) {
+        console.error('Erro de autenticação ao salvar mensagem')
+        setError({
+          type: 'auth',
+          message: 'Erro de autenticação. Faça login novamente.'
+        })
       }
     } catch (error) {
       console.error('Erro ao salvar mensagem:', error)

@@ -32,7 +32,180 @@
 
 .desktopMenu {
   display: flex;
+  align-items: center;
   gap: 2rem;
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Seção da conta com dropdown */
+.accountSection {
+  position: relative;
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--border-color);
+}
+
+.accountBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  color: var(--text-primary);
+}
+
+.accountBtn:hover {
+  background: var(--hover-bg);
+}
+
+.userAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.userName {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdownArrow {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+}
+
+.dropdownArrow.open {
+  transform: rotate(180deg);
+}
+
+.accountDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: var(--primary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  min-width: 240px;
+  z-index: 1000;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownHeader {
+  padding: 1rem;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.userInfo strong {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.userInfo span {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0 0.5rem;
+}
+
+.dropdownMenu {
+  padding: 0.5rem;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.dropdownItem:hover {
+  background: var(--hover-bg);
+}
+
+.dropdownIcon {
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.logoutItem {
+  color: var(--error-color);
+}
+
+.logoutItem:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.logoutBtn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logoutBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
 .navLink {
@@ -103,6 +276,10 @@
   .navContainer {
     padding: 0 1rem;
   }
+  
+  .accountSection {
+    display: none; /* Esconder no mobile, usar MobileMenu */
+  }
 }
 
 @media (max-width: 480px) {
@@ -112,5 +289,31 @@
   
   .logo {
     font-size: 1.25rem;
+  }
+}
+
+/* Responsividade específica para dropdown */
+@media (max-width: 1024px) {
+  .accountDropdown {
+    right: -1rem;
+    min-width: 220px;
+  }
+  
+  .userName {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 900px) {
+  .accountBtn {
+    padding: 0.25rem;
+  }
+  
+  .userName {
+    display: none; /* Esconder nome, mostrar só avatar */
+  }
+  
+  .accountDropdown {
+    right: -0.5rem;
   }
 }

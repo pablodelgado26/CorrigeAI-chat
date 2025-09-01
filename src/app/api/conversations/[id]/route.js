@@ -1,16 +1,30 @@
 import { NextResponse } from 'next/server'
 import prisma from '../../lib/prisma.js'
+import { getUserFromToken } from '@/utils/auth'
 
 // GET - Buscar conversa específica com mensagens
 export async function GET(request, { params }) {
   try {
+    // Verificar autenticação
+    const authResult = getUserFromToken(request)
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401 }
+      )
+    }
+
+    const userId = authResult.data.userId
     const { id } = await params
-    
-    const conversation = await prisma.conversation.findUnique({
-      where: { id },
+
+    const conversation = await prisma.conversation.findFirst({
+      where: { 
+        id,
+        userId // Garantir que o usuário só veja suas próprias conversas
+      },
       include: {
         messages: {
-          orderBy: { timestamp: 'asc' }
+          orderBy: { createdAt: 'asc' }
         }
       }
     })
@@ -26,9 +40,11 @@ export async function GET(request, { params }) {
   } catch (error) {
     console.error('Erro ao buscar conversa:', error)
     return NextResponse.json(
-      { error: 'Erro ao buscar conversa' },
+      { error: 'Erro interno do servidor' },
       { status: 500 }
     )
+  } finally {
+    await prisma.$disconnect()
   }
 }
 

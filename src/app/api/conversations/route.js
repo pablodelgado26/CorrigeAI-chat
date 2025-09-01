@@ -1,14 +1,28 @@
 import { NextResponse } from 'next/server'
-import prisma from '../lib/prisma.js'
+import { PrismaClient } from '@prisma/client'
+import { getUserFromToken } from '@/utils/auth'
 
-// GET - Buscar todas as conversas
-export async function GET() {
+const prisma = new PrismaClient()
+
+export async function GET(request) {
   try {
+    // Verificar autenticação
+    const authResult = getUserFromToken(request)
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401 }
+      )
+    }
+
+    const userId = authResult.data.userId
+
     const conversations = await prisma.conversation.findMany({
+      where: { userId },
       include: {
         messages: {
-          take: 1,
-          orderBy: { timestamp: 'desc' }
+          orderBy: { createdAt: 'desc' },
+          take: 1
         }
       },
       orderBy: { updatedAt: 'desc' }
@@ -18,20 +32,32 @@ export async function GET() {
   } catch (error) {
     console.error('Erro ao buscar conversas:', error)
     return NextResponse.json(
-      { error: 'Erro ao buscar conversas' },
+      { error: 'Erro interno do servidor' },
       { status: 500 }
     )
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
-// POST - Criar nova conversa
 export async function POST(request) {
   try {
+    // Verificar autenticação
+    const authResult = getUserFromToken(request)
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401 }
+      )
+    }
+
+    const userId = authResult.data.userId
     const { title } = await request.json()
 
     const conversation = await prisma.conversation.create({
       data: {
-        title: title || 'Nova Conversa'
+        title: title || 'Nova Conversa',
+        userId
       }
     })
 
@@ -39,9 +65,11 @@ export async function POST(request) {
   } catch (error) {
     console.error('Erro ao criar conversa:', error)
     return NextResponse.json(
-      { error: 'Erro ao criar conversa' },
+      { error: 'Erro interno do servidor' },
       { status: 500 }
     )
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
