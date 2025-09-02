@@ -15,11 +15,15 @@ model User {
   name      String
   email     String   @unique
   password  String
+  role      String   @default("USER") // USER, ADMIN, MODERATOR
+  isActive  Boolean  @default(true)
+  lastLogin DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  // Relacionamento com conversas
+  // Relacionamento com conversas e mensagens
   conversations Conversation[]
+  messages      Message[]
   
   @@map("users")
 }
@@ -39,15 +43,17 @@ model Conversation {
 }
 
 model Message {
-  id             String   @id @default(cuid())
-  conversationId String
-  type           String   // 'user' ou 'bot'
+  id             String       @id @default(cuid())
   content        String
+  role           String       // "user", "assistant", "system"
   imageUrl       String?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime     @default(now())
+  conversationId String
+  userId         String
   
-  // Relacionamento
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  // Relacionamentos
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("messages")
 }

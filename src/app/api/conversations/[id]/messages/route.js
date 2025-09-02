@@ -34,10 +34,16 @@ export async function POST(request, { params }) {
       )
     }
 
+    // Filtrar campos válidos para o Prisma
+    const { type, image, generatedImageUrl, ...validMessageData } = messageData
+    
     const message = await prisma.message.create({
       data: {
-        ...messageData,
-        conversationId
+        ...validMessageData,
+        conversationId,
+        userId,
+        role: messageData.type === 'USER' ? 'user' : 'assistant',
+        imageUrl: messageData.image || messageData.generatedImageUrl || null
       }
     })
 

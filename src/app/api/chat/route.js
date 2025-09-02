@@ -251,9 +251,16 @@ export async function POST(request) {
     console.error('Erro na API do chat:', error)
     
     // Verificar tipos específicos de erro
-    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED' || error.code === 'ENETUNREACH') {
       return NextResponse.json(
-        { error: 'Erro de conexão com o serviço de IA. Verifique sua internet e tente novamente.' },
+        { error: 'Serviço de IA temporariamente indisponível. Verifique sua conexão e tente novamente.' },
+        { status: 503 }
+      )
+    }
+    
+    if (error.name === 'TypeError' && error.message.includes('fetch failed')) {
+      return NextResponse.json(
+        { error: 'Erro de conectividade. Verifique sua internet e tente novamente.' },
         { status: 503 }
       )
     }

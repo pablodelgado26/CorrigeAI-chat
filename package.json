@@ -9,11 +9,15 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "build:analyze": "ANALYZE=true next build"
+    "build:analyze": "ANALYZE=true next build",
+    "db:seed": "node prisma/seed.js",
+    "db:reset": "npx prisma migrate reset --force && npm run db:seed",
+    "db:migrate": "npx prisma migrate dev"
   },
   "dependencies": {
     "@azure/openai": "^2.0.0",
     "@prisma/client": "^6.15.0",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",

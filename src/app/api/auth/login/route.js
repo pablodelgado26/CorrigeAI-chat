@@ -29,6 +29,14 @@ export async function POST(request) {
       )
     }
 
+    // Verificar se o usuário está ativo
+    if (!user.isActive) {
+      return NextResponse.json(
+        { error: 'Conta desativada. Entre em contato com o administrador.' },
+        { status: 403 }
+      )
+    }
+
     // Verificar senha
     const isValidPassword = await bcrypt.compare(password, user.password)
 
@@ -43,17 +51,31 @@ export async function POST(request) {
     const token = jwt.sign(
       { 
         userId: user.id,
-        email: user.email 
+        email: user.email,
+        role: user.role
       },
       process.env.JWT_SECRET || 'fallback-secret-key',
       { expiresIn: '7d' }
     )
 
+    // Atualizar último login
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { 
+        lastLogin: new Date(),
+        updatedAt: new Date()
+      }
+    })
+
     // Dados do usuário (sem senha)
     const userData = {
-      id: user.id,
-      name: user.name,
-      email: user.email
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      isActive: updatedUser.isActive,
+      createdAt: updatedUser.createdAt,
+      lastLogin: updatedUser.lastLogin
     }
 
     return NextResponse.json({

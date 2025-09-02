@@ -73,9 +73,20 @@ function Navbar() {
                       </div>
                     </div>
 
-                    
                     <div className={styles.dropdownMenu}>
-
+                      {user.role === 'ADMIN' && (
+                        <>
+                          <Link 
+                            href="/admin" 
+                            className={styles.dropdownItem}
+                            onClick={() => setIsAccountDropdownOpen(false)}
+                          >
+                            <span className={styles.dropdownIcon}>⚙️</span>
+                            Painel Admin
+                          </Link>
+                          <div className={styles.dropdownDivider}></div>
+                        </>
+                      )}
                       
                       <div className={styles.dropdownDivider}></div>
                       
