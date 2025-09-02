@@ -139,11 +139,7 @@ function ChatContainer() {
         body: JSON.stringify({
           content: message.content,
           type: message.type.toUpperCase(),
-          image: message.image,
-          generatedImageUrl: message.generatedImageUrl,
-          hasPdfDownload: message.hasPdfDownload || false,
-          pdfContent: message.pdfContent,
-          isProofAnalysis: message.isProofAnalysis || false
+          imageUrl: message.image || message.generatedImageUrl || null
         })
       })
       
@@ -732,6 +728,21 @@ ${data.text || 'Nenhum texto detectado'}
           <div className={styles.welcomeMessage}>
             <h2>Olá! Bem-vindo ao CorrigeAI! 🤖</h2>
             <p>Digite sua mensagem ou envie uma imagem para começar nossa conversa.</p>
+            
+            <div className={styles.suggestions}>
+              <button className={styles.suggestionBtn} onClick={() => setInputValue('Crie um PDF sobre física quântica')}>
+                Crie um PDF sobre física quântica
+              </button>
+              <button className={styles.suggestionBtn} onClick={() => setInputValue('Analise visualmente as provas anexadas, compare cada resposta com o gabarito da primeira imagem e crie um PDF com relatório preciso dos erros e acertos reais')}>
+                Corrigir provas e gerar relatório preciso
+              </button>
+              <button className={styles.suggestionBtn} onClick={() => setInputValue('Explique conceitos de programação')}>
+                Explique conceitos de programação
+              </button>
+              <button className={styles.suggestionBtn} onClick={() => setInputValue('Ajude com correção de texto')}>
+                Ajude com correção de texto
+              </button>
+            </div>
           </div>
         ) : (
           <div className={styles.messagesList}>

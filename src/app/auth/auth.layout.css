@@ -1,0 +1,51 @@
+/* Layout específico para páginas de autenticação */
+.auth-layout {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Reset específico para auth pages */
+.auth-layout * {
+  box-sizing: border-box;
+}
+
+/* Garante que o container de auth ocuppe toda a tela */
+.auth-layout > * {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Scrollbar para páginas de auth */
+.auth-layout::-webkit-scrollbar {
+  width: 6px;
+}
+
+.auth-layout::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.auth-layout::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.auth-layout::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Para dispositivos touch */
+@supports (-webkit-touch-callout: none) {
+  .auth-layout {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+  
+  .auth-layout > * {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+}

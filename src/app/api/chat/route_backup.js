@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { OpenAIClient, AzureKeyCredential } from '@azure/openai'
 
 // Cache simples para respostas (em produção, use Redis ou similar)
 const responseCache = new Map()
@@ -102,8 +103,7 @@ export async function POST(request) {
     // Verificar se as configurações do Azure OpenAI estão definidas
     const apiKey = process.env.AZURE_OPENAI_API_KEY
     const endpoint = process.env.AZURE_OPENAI_ENDPOINT
-    const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'o4-mini'
-    const apiVersion = process.env.AZURE_OPENAI_API_VERSION || '2024-12-01-preview'
+    const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4'
     
     if (!apiKey || !endpoint) {
       console.error('Configurações do Azure OpenAI não encontradas')
@@ -113,6 +113,9 @@ export async function POST(request) {
       )
     }
 
+    // Inicializar cliente Azure OpenAI
+    const client = new OpenAIClient(endpoint, new AzureKeyCredential(apiKey))
+    
     // Preparar mensagens para Azure OpenAI
     let messages = [
       {
@@ -171,57 +174,19 @@ export async function POST(request) {
     console.log('Tem imagem:', !!image)
     console.log('Tamanho da mensagem:', message.length)
     
-    // Configurar a requisição para Azure OpenAI usando fetch
-    const azureUrl = `${endpoint}openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`
-    
-    const requestBody = {
-      messages: messages,
-      model: deploymentName, // Baseado na documentação Azure
-      max_completion_tokens: 4000,
-      temperature: 1 // o4-mini só aceita temperature = 1 e não aceita top_p
-    }
-
     // Fazer a requisição para o Azure OpenAI
-    const response = await fetch(azureUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api-key': apiKey
-      },
-      body: JSON.stringify(requestBody)
+    const completion = await client.getChatCompletions(deploymentName, {
+      messages: messages,
+      maxTokens: 4000,
+      temperature: 0.7,
+      topP: 0.9
     })
 
-    console.log('Status da resposta:', response.status)
-    
-    // Log detalhado do erro para debugging
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error(`Erro na API do Azure OpenAI (${response.status}):`, errorText)
-      
-      let errorMessage = 'Desculpe, não consegui processar sua solicitação no momento. Tente novamente.'
-      
-      if (response.status === 429) {
-        errorMessage = 'Muitas solicitações foram feitas. Aguarde alguns minutos e tente novamente.'
-      } else if (response.status >= 500) {
-        errorMessage = 'Serviço temporariamente indisponível. Tente novamente em alguns minutos.'
-      } else if (response.status === 401) {
-        errorMessage = 'Erro de autenticação. Verifique as configurações da API.'
-      } else if (response.status === 404) {
-        errorMessage = `Deployment "${deploymentName}" não encontrado. Verifique a configuração do Azure OpenAI.`
-      }
-      
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
     console.log('Resposta recebida do Azure OpenAI')
     
     // Verificar se a resposta tem o formato esperado
-    if (!data.choices || data.choices.length === 0) {
-      console.error('Resposta inválida do Azure OpenAI:', data)
+    if (!completion.choices || completion.choices.length === 0) {
+      console.error('Resposta inválida do Azure OpenAI:', completion)
       return NextResponse.json(
         { error: 'Não foi possível gerar uma resposta. Tente reformular sua pergunta.' },
         { status: 500 }
@@ -229,10 +194,10 @@ export async function POST(request) {
     }
     
     // Extrair a resposta
-    const aiResponse = data.choices[0]?.message?.content
+    const aiResponse = completion.choices[0]?.message?.content
     
     if (!aiResponse) {
-      console.error('Texto de resposta não encontrado:', data.choices[0])
+      console.error('Texto de resposta não encontrado:', completion.choices[0])
       return NextResponse.json(
         { error: 'Não foi possível gerar uma resposta. Tente novamente.' },
         { status: 500 }

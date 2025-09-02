@@ -39,6 +39,18 @@ function Sidebar() {
       </div>
 
       <div className={styles.conversationsList}>
+        <div className={styles.navigationMenu}>
+          <Link href="/" className={styles.navLink}>
+            <span className={styles.navIcon}>💬</span>
+            Chat com IA
+          </Link>
+          
+          <Link href="/pdf-analyzer" className={styles.navLink}>
+            <span className={styles.navIcon}>📄</span>
+            Analisador PDF
+          </Link>
+        </div>
+        
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>💬</div>
           <h3 className={styles.emptyTitle}>Conversas Anteriores</h3>

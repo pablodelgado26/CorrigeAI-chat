@@ -4,6 +4,22 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   
+  // Configurações para webpack
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Configurações específicas para o servidor
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        stream: false,
+        crypto: false,
+      }
+    }
+    
+    return config
+  },
+  
   // Configurações de imagem para Vercel
   images: {
     domains: [],

@@ -40,31 +40,6 @@
   font-size: 1.1rem;
 }
 
-.suggestions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  width: 100%;
-  max-width: 400px;
-}
-
-.suggestionBtn {
-  padding: 1rem;
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 0.75rem;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: left;
-}
-
-.suggestionBtn:hover {
-  background: var(--hover-bg);
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
-}
-
 .messagesList {
   display: flex;
   flex-direction: column;
@@ -293,15 +268,6 @@
     font-size: 1rem;
   }
   
-  .suggestions {
-    gap: 0.5rem;
-  }
-  
-  .suggestionBtn {
-    padding: 0.875rem;
-    font-size: 0.9rem;
-  }
-  
   .inputContainer {
     gap: 0.5rem;
   }
@@ -333,11 +299,6 @@
   
   .welcomeMessage p {
     font-size: 0.9rem;
-  }
-  
-  .suggestionBtn {
-    padding: 0.75rem;
-    font-size: 0.85rem;
   }
   
   .inputContainer {

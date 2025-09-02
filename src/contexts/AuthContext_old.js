@@ -1,6 +1,66 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, use  const login = useCallback(async (email, password) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Salvar token e dados do usuário
+        Cookies.set('authToken', data.token, { 
+          expires: 7, // 7 dias
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict'
+        })
+        localStorage.setItem('user', JSON.stringify(data.user))
+        setUser(data.user)
+        return { success: true, data }
+      } else {
+        return { success: false, error: data.error || 'Erro no login' }
+      }
+    } catch (error) {
+      console.error('Erro no login:', error)
+      return { success: false, error: 'Erro de conexão' }
+    }
+  }, [])
+
+  const register = useCallback(async (name, email, password) => {
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Salvar token e dados do usuário
+        Cookies.set('authToken', data.token, { 
+          expires: 7, // 7 dias
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict'
+        })
+        localStorage.setItem('user', JSON.stringify(data.user))
+        setUser(data.user)
+        return { success: true, data }
+      } else {
+        return { success: false, error: data.error || 'Erro no cadastro' }
+      }
+    } catch (error) {
+      console.error('Erro no registro:', error)
+      return { success: false, error: 'Erro de conexão' }
+    }
+  }, [])Effect, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Cookies from 'js-cookie'
 
@@ -69,33 +129,6 @@ export function AuthProvider({ children }) {
     }
   }, [router])
 
-  const register = useCallback(async (name, email, password) => {
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        // Após registro bem-sucedido, fazer login automaticamente
-        if (data.token && data.user) {
-          login(data.user, data.token)
-        }
-        return { success: true, user: data.user }
-      } else {
-        return { success: false, error: data.error || 'Erro no cadastro' }
-      }
-    } catch (error) {
-      console.error('Erro no registro:', error)
-      return { success: false, error: 'Erro de conexão. Tente novamente.' }
-    }
-  }, [login])
-
   const getAuthHeaders = useCallback(() => {
     const token = Cookies.get('authToken')
     return token ? { 'Authorization': `Bearer ${token}` } : {}
@@ -105,7 +138,6 @@ export function AuthProvider({ children }) {
     user,
     loading,
     login,
-    register,
     logout,
     getAuthHeaders,
     isAuthenticated: !!user

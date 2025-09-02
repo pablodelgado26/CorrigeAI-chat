@@ -12,12 +12,15 @@
     "build:analyze": "ANALYZE=true next build"
   },
   "dependencies": {
+    "@azure/openai": "^2.0.0",
     "@prisma/client": "^6.15.0",
     "bcryptjs": "^3.0.2",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.1",
+    "multer": "^2.0.2",
     "next": "15.5.0",
+    "pdf-parse": "^1.1.1",
     "prisma": "^6.15.0",
     "react": "^18",
     "react-dom": "^18"

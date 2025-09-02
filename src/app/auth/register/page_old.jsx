@@ -1,12 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from '../../../contexts/AuthContext'
-import { useToast } from '../../../components/Toast/index.jsx'
-import Loading from '../../../components/Loading'
-import styles from './auth.module.css'
+import styles from '../login/auth.module.css'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -16,9 +14,10 @@ export default function RegisterPage() {
     confirmPassword: ''
   })
   const [loading, setLoading] = useState(false)
-  const { register } = useAuth()
-  const { showSuccess, showError } = useToast()
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const router = useRouter()
+  const { login } = useAuth()
 
   const handleChange = (e) => {
     setFormData({
@@ -29,62 +28,84 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    // Validações
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      showError('Por favor, preencha todos os campos')
-      return
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      showError('As senhas não coincidem')
-      return
-    }
-
-    if (formData.password.length < 6) {
-      showError('A senha deve ter pelo menos 6 caracteres')
-      return
-    }
-    
     setLoading(true)
+    setError('')
+    setSuccess('')
+
+    // Validar senhas
+    if (formData.password !== formData.confirmPassword) {
+      setError('As senhas não coincidem')
+      setLoading(false)
+      return
+    }
 
     try {
-      const result = await register(formData.name, formData.email, formData.password)
-      
-      if (result.success) {
-        showSuccess('Cadastro realizado com sucesso!')
-        router.push('/')
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Se o registro incluir automaticamente o login
+        if (data.token && data.user) {
+          login(data.user, data.token)
+        } else {
+          setSuccess('Conta criada com sucesso! Redirecionando para login...')
+          setTimeout(() => {
+            router.push('/auth/login')
+          }, 2000)
+        }
       } else {
-        showError(result.error || 'Erro no cadastro')
+        setError(data.error || 'Erro no cadastro')
       }
     } catch (error) {
       console.error('Erro no cadastro:', error)
-      showError('Erro inesperado. Tente novamente.')
+      setError('Erro de conexão. Tente novamente.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className={styles.authContainer}>
+    <div className={styles.container}>
       <div className={styles.authCard}>
-        <div className={styles.authHeader}>
-          <h1>Criar Conta</h1>
-          <p>Cadastre-se para começar a usar o chat</p>
+        <div className={styles.header}>
+          <h1>🤖 CorrigeAI</h1>
+          <p>Crie sua conta</p>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.authForm}>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          {error && (
+            <div className={styles.error}>
+              ❌ {error}
+            </div>
+          )}
+
+          {success && (
+            <div className={styles.success}>
+              ✅ {success}
+            </div>
+          )}
+
           <div className={styles.inputGroup}>
-            <label htmlFor="name">Nome</label>
+            <label htmlFor="name">Nome completo</label>
             <input
               type="text"
               id="name"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Seu nome"
               required
-              disabled={loading}
+              placeholder="Digite seu nome completo"
             />
           </div>
 
@@ -96,9 +117,8 @@ export default function RegisterPage() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="seu@email.com"
               required
-              disabled={loading}
+              placeholder="Digite seu email"
             />
           </div>
 
@@ -110,44 +130,46 @@ export default function RegisterPage() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Sua senha (mín. 6 caracteres)"
               required
-              disabled={loading}
+              placeholder="Digite sua senha (mín. 6 caracteres)"
+              minLength={6}
             />
           </div>
 
           <div className={styles.inputGroup}>
-            <label htmlFor="confirmPassword">Confirmar Senha</label>
+            <label htmlFor="confirmPassword">Confirmar senha</label>
             <input
               type="password"
               id="confirmPassword"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="Confirme sua senha"
               required
-              disabled={loading}
+              placeholder="Confirme sua senha"
             />
           </div>
 
           <button 
             type="submit" 
-            className={styles.submitButton}
+            className={styles.submitBtn}
             disabled={loading}
           >
             {loading ? (
-              <Loading size="small" color="white" />
+              <>
+                <span className={styles.spinner}></span>
+                Criando conta...
+              </>
             ) : (
-              'Cadastrar'
+              'Criar conta'
             )}
           </button>
         </form>
 
-        <div className={styles.authFooter}>
+        <div className={styles.footer}>
           <p>
             Já tem uma conta?{' '}
-            <Link href="/auth/login" className={styles.authLink}>
-              Faça login
+            <Link href="/auth/login" className={styles.link}>
+              Faça login aqui
             </Link>
           </p>
         </div>

@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar/index.jsx";
 import Footer from "../components/Footer/index.jsx";
 import AuthGuard from "../components/AuthGuard.jsx";
 import { AuthProvider } from "../contexts/AuthContext.js";
+import { ToastProvider } from "../components/Toast/index.jsx";
 import ConditionalLayout from "../components/ConditionalLayout.jsx";
 import "./globals.css";
 
@@ -27,13 +28,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
-        <AuthProvider>
-          <AuthGuard>
-            <ConditionalLayout>
-              {children}
-            </ConditionalLayout>
-          </AuthGuard>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <AuthGuard>
+              <ConditionalLayout>
+                {children}
+              </ConditionalLayout>
+            </AuthGuard>
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );
