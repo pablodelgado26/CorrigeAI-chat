@@ -1,37 +1,137 @@
-/* Variáveis CSS para temas */
+/* =====================================================
+   DESIGN CORRIGEAI - ESCOLA SESI
+   Tema: Branco, Preto e Vermelho
+   ===================================================== */
+
 :root {
-  /* Cores primárias */
-  --primary-color: #6366f1;
-  --primary-rgb: 99, 102, 241;
-  --accent-color: #5855eb;
-  --success-color: #22c55e;
-  --warning-color: #f59e0b;
-  --error-color: #ef4444;
+  /* CORES PRINCIPAIS - CORRIGEAI SESI */
+  --sesi-red: #dc2626;
+  --sesi-red-dark: #b91c1c;
+  --sesi-red-light: #f87171;
+  --sesi-red-rgb: 220, 38, 38;
   
-  /* Tema claro */
+  /* Cores de apoio */
+  --accent-color: #dc2626;
+  --success-color: #16a34a;
+  --warning-color: #ea580c;
+  --info-color: #0284c7;
+  
+  /* TEMA CLARO (padrão) - Branco e Vermelho */
   --primary-bg: #ffffff;
   --secondary-bg: #f8fafc;
   --tertiary-bg: #f1f5f9;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  
   --border-color: #e2e8f0;
-  --hover-bg: #f1f5f9;
+  --border-light: #f1f5f9;
+  --hover-bg: #f8fafc;
+  --active-bg: #f1f5f9;
+  
   --shadow-color: rgba(0, 0, 0, 0.1);
+  --shadow-hover: rgba(0, 0, 0, 0.15);
+  
+  /* Cores específicas do chat */
+  --chat-bg: #ffffff;
+  --user-bubble-bg: var(--sesi-red);
+  --ai-bubble-bg: #f1f5f9;
+  --message-border: #e2e8f0;
+  
+  /* Navbar e componentes */
+  --navbar-bg: #ffffff;
+  --navbar-shadow: rgba(0, 0, 0, 0.1);
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e2e8f0;
+  
+  /* Estados de erro */
+  --error-bg: rgba(220, 38, 38, 0.05);
+  --error-border: rgba(220, 38, 38, 0.2);
+  --error-text: #dc2626;
 }
 
+/* TEMA ESCURO - Preto, Cinza e Vermelho */
 [data-theme="dark"] {
-  /* Tema escuro */
-  --primary-bg: #0f172a;
-  --secondary-bg: #1e293b;
-  --tertiary-bg: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --border-color: #334155;
-  --hover-bg: #334155;
+  --primary-bg: #0f0f0f;
+  --secondary-bg: #1a1a1a;
+  --tertiary-bg: #262626;
+  --card-bg: #1a1a1a;
+  --input-bg: #262626;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  
+  --border-color: #374151;
+  --border-light: #4b5563;
+  --hover-bg: #262626;
+  --active-bg: #374151;
+  
   --shadow-color: rgba(0, 0, 0, 0.5);
+  --shadow-hover: rgba(0, 0, 0, 0.7);
+  
+  /* Chat no modo escuro */
+  --chat-bg: #0f0f0f;
+  --user-bubble-bg: var(--sesi-red);
+  --ai-bubble-bg: #262626;
+  --message-border: #374151;
+  
+  /* Navbar e componentes escuros */
+  --navbar-bg: #1a1a1a;
+  --navbar-shadow: rgba(0, 0, 0, 0.8);
+  --sidebar-bg: #1a1a1a;
+  --sidebar-border: #374151;
+  
+  /* Estados de erro no escuro */
+  --error-bg: rgba(220, 38, 38, 0.15);
+  --error-border: rgba(220, 38, 38, 0.4);
+  --error-text: #f87171;
 }
 
-/* Reset e estilos base */
+/* TEMA SESI - Cores institucionais */
+[data-theme="sesi"] {
+  --primary-bg: #ffffff;
+  --secondary-bg: #fef2f2;
+  --tertiary-bg: #fee2e2;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  
+  --border-color: #fecaca;
+  --border-light: #fee2e2;
+  --hover-bg: #fef2f2;
+  --active-bg: #fee2e2;
+  
+  --shadow-color: rgba(220, 38, 38, 0.1);
+  --shadow-hover: rgba(220, 38, 38, 0.2);
+  
+  /* Chat com identidade SESI */
+  --chat-bg: #ffffff;
+  --user-bubble-bg: var(--sesi-red);
+  --ai-bubble-bg: #fef2f2;
+  --message-border: #fecaca;
+  
+  /* Componentes com identidade SESI */
+  --navbar-bg: var(--sesi-red);
+  --navbar-shadow: rgba(220, 38, 38, 0.3);
+  --sidebar-bg: #fef2f2;
+  --sidebar-border: #fecaca;
+}
+
+/* COMPATIBILIDADE COM COMPONENTES EXISTENTES */
+:root {
+  --primary-color: var(--sesi-red);
+  --primary-rgb: var(--sesi-red-rgb);
+  --error-color: var(--sesi-red-dark);
+}
+
+/* RESET E ESTILOS BASE */
 * {
   box-sizing: border-box;
   padding: 0;
@@ -42,12 +142,39 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   background-color: var(--primary-bg);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   line-height: 1.6;
   height: 100%;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* BRANDING CORRIGEAI */
+.corrigeai-brand {
+  background: linear-gradient(135deg, var(--sesi-red) 0%, var(--sesi-red-dark) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.sesi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--sesi-red);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 a {

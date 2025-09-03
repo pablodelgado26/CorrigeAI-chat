@@ -79,7 +79,7 @@
 
 /* Tipos de toast */
 .success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--sesi-red) 0%, var(--sesi-red-dark) 100%);
   color: white;
 }
 

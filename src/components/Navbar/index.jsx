@@ -4,11 +4,15 @@ import React, { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../../contexts/AuthContext'
 import MobileMenu from '../MobileMenu/index.jsx'
+import LoginModal from '../LoginModal'
+import SignupModal from '../SignupModal'
 import styles from './Navbar.module.css'
 
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false)
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false)
   const { user, logout } = useAuth()
   const dropdownRef = useRef(null)
 
@@ -31,12 +35,28 @@ function Navbar() {
     logout()
   }
 
+  const handleSwitchToSignup = () => {
+    setIsLoginModalOpen(false)
+    setIsSignupModalOpen(true)
+  }
+
+  const handleSwitchToLogin = () => {
+    setIsSignupModalOpen(false)
+    setIsLoginModalOpen(true)
+  }
+
   return (
     <>
       <nav className={styles.navbar}>
         <div className={styles.navContainer}>
           <Link href="/" className={styles.logo}>
-            🤖 CorrigeAI
+            <div className={styles.logoContainer}>
+              <span className={styles.logoIcon}>🎯</span>
+              <div className={styles.logoText}>
+                <span className={styles.brandName}>CorrigeAI</span>
+                <span className={styles.brandSubtitle}>ESCOLA SESI</span>
+              </div>
+            </div>
           </Link>
           
           {/* Menu Desktop */}
@@ -48,7 +68,7 @@ function Navbar() {
               Sobre
             </Link>
             
-            {user && (
+            {user ? (
               <div className={styles.accountSection} ref={dropdownRef}>
                 <button 
                   onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
@@ -101,6 +121,21 @@ function Navbar() {
                   </div>
                 )}
               </div>
+            ) : (
+              <div className={styles.authButtons}>
+                <button 
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className={styles.loginBtn}
+                >
+                  Entrar
+                </button>
+                <button 
+                  onClick={() => setIsSignupModalOpen(true)}
+                  className={styles.signupBtn}
+                >
+                  Criar conta
+                </button>
+              </div>
             )}
           </div>
 
@@ -123,6 +158,19 @@ function Navbar() {
         onClose={() => setIsMobileMenuOpen(false)}
         user={user}
         onLogout={logout}
+      />
+
+      {/* Modais de Autenticação */}
+      <LoginModal 
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSwitchToSignup={handleSwitchToSignup}
+      />
+      
+      <SignupModal 
+        isOpen={isSignupModalOpen}
+        onClose={() => setIsSignupModalOpen(false)}
+        onSwitchToLogin={handleSwitchToLogin}
       />
     </>
   )

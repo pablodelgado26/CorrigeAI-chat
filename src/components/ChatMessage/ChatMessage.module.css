@@ -1,241 +1,405 @@
-.message {
+/* =====================================================
+   CHAT MESSAGE CORRIGEAI - ESCOLA SESI
+   Design: Branco, Preto e Vermelho
+   ===================================================== */
+
+.messageContainer {
   display: flex;
-  margin-bottom: 2rem;
-  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  margin-bottom: 1rem;
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  padding: 0 1.5rem;
 }
 
-.message.user {
+/* Mensagem do usuário - à direita */
+.userMessage {
   justify-content: flex-end;
+  flex-direction: row-reverse;
 }
 
-.message.bot {
+/* Mensagem da IA - à esquerda */
+.aiMessage {
   justify-content: flex-start;
 }
 
-.messageContent {
+/* Avatar da mensagem */
+.messageAvatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid white;
+}
+
+/* Avatar do usuário */
+.userMessage .messageAvatar {
+  background: linear-gradient(135deg, var(--sesi-red) 0%, var(--sesi-red-dark) 100%);
+  color: white;
+}
+
+/* Avatar da IA */
+.aiMessage .messageAvatar {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  color: white;
+}
+
+/* Bubble da mensagem - estilo WhatsApp melhorado */
+.messageBubble {
   max-width: 75%;
-  padding: 1.5rem 2rem;
-  border-radius: 25px;
+  min-width: 120px;
+  border-radius: 20px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   position: relative;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.messageContent:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
-
-.message.user .messageContent {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* Bubble do usuário - vermelho SESI */
+.userMessage .messageBubble {
+  background: linear-gradient(135deg, var(--sesi-red) 0%, var(--sesi-red-dark) 100%);
   color: white;
-  border-bottom-right-radius: 8px;
-  position: relative;
-  overflow: hidden;
+  border-bottom-right-radius: 6px;
 }
 
-.message.user .messageContent::before {
+/* Bubble da IA - neutro */
+.aiMessage .messageBubble {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-bottom-left-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+/* Setas dos bubbles */
+.userMessage .messageBubble::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  pointer-events: none;
+  right: -10px;
+  width: 0;
+  height: 0;
+  border: 10px solid transparent;
+  border-left-color: var(--sesi-red-dark);
+  border-bottom: none;
+  border-top-left-radius: 20px;
 }
 
-.message.bot .messageContent {
-  background: rgba(255, 255, 255, 0.95);
-  color: #1e293b;
-  border-bottom-left-radius: 8px;
-  border: 1px solid rgba(102, 126, 234, 0.1);
+.aiMessage .messageBubble::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -10px;
+  width: 0;
+  height: 0;
+  border: 10px solid transparent;
+  border-right-color: var(--card-bg);
+  border-bottom: none;
+  border-top-right-radius: 20px;
 }
 
-.imageContainer {
-  margin-bottom: 0.75rem;
-}
-
-.messageImage {
-  max-width: 100%;
-  height: auto;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.imageCaption {
-  font-size: 0.8rem;
-  color: #64748b;
-  text-align: center;
-  margin-top: 0.5rem;
-  font-style: italic;
-}
-
-.imageActions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-top: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.downloadImageBtn {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.25rem;
-  border-radius: 15px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-}
-
-.downloadImageBtn:hover:not(:disabled) {
-  background: #059669;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.downloadImageBtn:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.openImageBtn {
-  background: #3b82f6;
-  color: white;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.openImageBtn:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-  text-decoration: none;
-  color: white;
-}
-
-.imageError {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  text-align: center;
-  color: #dc2626;
-}
-
-.errorIcon {
-  font-size: 2rem;
-  display: block;
-  margin-bottom: 0.5rem;
-}
-
-.imageLink {
-  display: inline-block;
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #3b82f6;
-  color: white;
-  text-decoration: none;
-  border-radius: 0.25rem;
-  font-size: 0.85rem;
-  transition: background 0.2s;
-}
-
-.imageLink:hover {
-  background: #2563eb;
-}
-
+/* Texto da mensagem */
 .messageText {
-  line-height: 1.7;
   font-size: 1rem;
   font-weight: 400;
+  margin: 0;
+  line-height: 1.5;
 }
 
+.messageText p {
+  margin: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Texto do usuário */
+.userMessage .messageText {
+  color: white;
+}
+
+/* Texto da IA */
+.aiMessage .messageText {
+  color: var(--text-primary);
+}
+
+/* Formatação de texto */
 .messageText strong {
   font-weight: 700;
 }
 
+.userMessage .messageText strong {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.aiMessage .messageText strong {
+  color: var(--sesi-red);
+}
+
 .messageText em {
   font-style: italic;
+}
+
+.userMessage .messageText em {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.message.bot .messageText em {
-  color: #64748b;
+.aiMessage .messageText em {
+  color: var(--text-secondary);
 }
 
-.messageTime {
-  font-size: 0.8rem;
-  opacity: 0.8;
-  margin-top: 0.75rem;
+.messageText code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 0.9rem;
+}
+
+.userMessage .messageText code {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.aiMessage .messageText code {
+  background: var(--tertiary-bg);
+}
+
+/* Links */
+.messageText a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.5);
+}
+
+.userMessage .messageText a {
+  text-decoration-color: rgba(255, 255, 255, 0.7);
+}
+
+.userMessage .messageText a:hover {
+  text-decoration-color: white;
+}
+
+.aiMessage .messageText a {
+  color: var(--sesi-red);
+  text-decoration-color: rgba(220, 38, 38, 0.5);
+}
+
+.aiMessage .messageText a:hover {
+  text-decoration-color: var(--sesi-red);
+}
+
+/* Timestamp */
+.messageTimestamp {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
   text-align: right;
   font-weight: 500;
 }
 
-.message.user .messageTime {
-  color: rgba(255, 255, 255, 0.9);
+.userMessage .messageTimestamp {
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.message.bot .messageTime {
-  color: #94a3b8;
+.aiMessage .messageTimestamp {
+  color: var(--text-secondary);
 }
 
+/* Ações da mensagem */
+.messageActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  justify-content: flex-end;
+}
+
+.actionButton {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.userMessage .actionButton {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.userMessage .actionButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.aiMessage .actionButton {
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+.aiMessage .actionButton:hover {
+  background: var(--hover-bg);
+  color: var(--sesi-red);
+  border-color: var(--sesi-red);
+  transform: translateY(-1px);
+}
+
+/* Imagens */
+.messageImage {
+  margin: 0.75rem 0;
+  max-width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.messageImage img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.messageImage:hover img {
+  transform: scale(1.02);
+}
+
+/* Estados de carregamento e erro */
+.loadingMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.imageLoading,
+.imageError {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  background: var(--tertiary-bg);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.imageError {
+  background: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid var(--error-border);
+}
+
+/* Estados especiais */
+.messageContainer.error .messageBubble {
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: var(--error-text);
+}
+
+.messageContainer.error .messageAvatar {
+  background: var(--sesi-red);
+}
+
+/* Animações */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.2);
+  }
+}
+
+.typingIndicator span {
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typingIndicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typingIndicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* PDF e Downloads */
 .pdfDownloadContainer {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.userMessage .pdfDownloadContainer {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.aiMessage .pdfDownloadContainer {
+  border-color: var(--border-color);
 }
 
 .pdfDownloadBtn {
-  background: #22c55e;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
-.pdfDownloadBtn:hover:not(:disabled) {
-  background: #16a34a;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+.userMessage .pdfDownloadBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
-.pdfDownloadBtn:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+.aiMessage .pdfDownloadBtn {
+  background: var(--sesi-red);
+  border-color: var(--sesi-red);
+  color: white;
+}
+
+.aiMessage .pdfDownloadBtn:hover {
+  background: var(--sesi-red-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
 .loadingSpinner {
+  display: inline-block;
   width: 16px;
   height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -244,96 +408,179 @@
   animation: spin 1s linear infinite;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-  .messageContent {
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 1200px) {
+  .messageContainer {
+    padding: 0.75rem 1.25rem;
+  }
+  
+  .messageBubble {
+    max-width: 80%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .messageContainer {
+    padding: 0.5rem 1rem;
+  }
+  
+  .messageBubble {
     max-width: 85%;
-    padding: 1.25rem 1.5rem;
-    border-radius: 20px;
+    padding: 0.875rem 1rem;
   }
   
-  .message.user .messageContent {
-    border-bottom-right-radius: 6px;
+  .messageAvatar {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .messageContainer {
+    padding: 0.375rem 0.75rem;
   }
   
-  .message.bot .messageContent {
-    border-bottom-left-radius: 6px;
+  .messageBubble {
+    max-width: 90%;
+    padding: 0.75rem 1rem;
+    border-radius: 16px;
   }
   
   .messageText {
     font-size: 0.95rem;
+    line-height: 1.4;
   }
   
-  .pdfDownloadBtn {
-    width: 100%;
-    justify-content: center;
-    padding: 1rem;
-    font-size: 1rem;
+  .messageAvatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  .messageTimestamp {
+    font-size: 0.7rem;
+  }
+  
+  /* Ajustar setas para mobile */
+  .userMessage .messageBubble::before {
+    right: -8px;
+    border-left-width: 8px;
+    border-top-width: 8px;
+  }
+  
+  .aiMessage .messageBubble::before {
+    left: -8px;
+    border-right-width: 8px;
+    border-top-width: 8px;
   }
 }
 
 @media (max-width: 480px) {
-  .messageContent {
-    max-width: 92%;
-    padding: 1rem 1.25rem;
-    border-radius: 18px;
+  .messageContainer {
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .messageBubble {
+    max-width: 95%;
+    padding: 0.625rem 0.875rem;
   }
   
   .messageText {
     font-size: 0.9rem;
+    line-height: 1.35;
   }
   
-  .message {
-    margin-bottom: 1.5rem;
+  .messageAvatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+    margin: 0 0.5rem;
+  }
+  
+  .messageActions {
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+  }
+  
+  .actionButton {
+    width: 100%;
+    justify-content: center;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  .messageTimestamp {
+    font-size: 0.65rem;
+  }
+  
+  .messageImage {
+    border-radius: 12px;
+    margin: 0.5rem 0;
+  }
+  
+  /* Setas menores para mobile */
+  .userMessage .messageBubble::before {
+    right: -6px;
+    border-left-width: 6px;
+    border-top-width: 6px;
+  }
+  
+  .aiMessage .messageBubble::before {
+    left: -6px;
+    border-right-width: 6px;
+    border-top-width: 6px;
   }
 }
 
-/* Styles for formatted links */
-.messageLink {
-  color: #007bff;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  background-color: #f8f9fa;
-  border: 1px solid #007bff;
-  border-radius: 4px;
-  display: inline-block;
-  margin: 0.25rem;
-  transition: all 0.2s ease;
-  font-weight: 500;
+/* ===== ACESSIBILIDADE ===== */
+@media (prefers-reduced-motion: reduce) {
+  .messageContainer,
+  .messageAvatar,
+  .actionButton,
+  .messageImage img {
+    animation: none;
+    transition: none;
+  }
 }
 
-.messageLink:hover {
-  background-color: #007bff;
-  color: white;
-  text-decoration: none;
+/* ===== ALTO CONTRASTE ===== */
+@media (prefers-contrast: high) {
+  .messageBubble {
+    border: 2px solid var(--border-color);
+  }
+  
+  .actionButton {
+    border-width: 2px;
+  }
+  
+  .messageText strong {
+    text-decoration: underline;
+  }
 }
 
-/* Styles for code blocks */
-.codeBlock {
-  background-color: #f4f4f4;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 1rem;
-  margin: 0.5rem 0;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-x: auto;
+/* ===== MODO IMPRESSÃO ===== */
+@media print {
+  .messageContainer {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+  
+  .messageActions {
+    display: none;
+  }
+  
+  .messageAvatar {
+    background: #666 !important;
+  }
+  
+  .pdfDownloadContainer {
+    display: none;
+  }
 }

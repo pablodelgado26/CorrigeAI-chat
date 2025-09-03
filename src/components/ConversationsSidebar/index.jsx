@@ -7,11 +7,11 @@ import styles from './ConversationsSidebar.module.css'
 function ConversationsSidebar({ isOpen, onToggle, currentConversationId, onConversationSelect }) {
   const [conversations, setConversations] = useState([])
   const [isLoading, setIsLoading] = useState(false)
-  const [theme, setTheme] = useState('light')
+  const [theme, setTheme] = useState('dark')
 
   useEffect(() => {
     // Carregar tema do localStorage
-    const savedTheme = localStorage.getItem('theme') || 'light'
+    const savedTheme = localStorage.getItem('theme') || 'dark'
     setTheme(savedTheme)
     document.documentElement.setAttribute('data-theme', savedTheme)
   }, [])

@@ -1,15 +1,43 @@
 .authContainer {
   min-height: 100vh;
   min-height: 100dvh; /* Para dispositivos móveis modernos */
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
   padding: 1rem;
   box-sizing: border-box;
   position: relative;
   width: 100%;
-  overflow-y: auto;
+  overflow: hidden; /* Remove scrollbars */
+}
+
+.authContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(220, 38, 38, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(220, 38, 38, 0.06) 0%, transparent 50%);
+  animation: waves 8s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes waves {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1) translateY(-10px);
+    opacity: 0.8;
+  }
 }
 
 .authCard {
@@ -20,6 +48,8 @@
   width: 100%;
   max-width: 420px;
   min-width: 300px;
+  max-height: 90vh;
+  overflow-y: auto;
   animation: slideIn 0.3s ease;
   box-sizing: border-box;
   margin: auto;
@@ -43,14 +73,57 @@
   margin-bottom: 2rem;
 }
 
-.authHeader h1 {
+.logoContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.logoIcon {
+  font-size: 2.5rem;
+  color: #dc2626;
+  filter: drop-shadow(0 2px 4px rgba(220, 38, 38, 0.3));
+}
+
+.brandInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.brandName {
   font-size: 2rem;
+  margin: 0;
+  color: #000000;
+  font-weight: 700;
+  background: linear-gradient(135deg, #000000 0%, #dc2626 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+}
+
+.brandSubtitle {
+  font-size: 0.85rem;
+  color: #dc2626;
+  margin: 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.authHeader h1 {
+  font-size: 1.75rem;
   margin: 0 0 0.5rem 0;
-  color: #333;
+  color: #000000;
+  font-weight: 700;
 }
 
 .authHeader p {
-  color: #666;
+  color: #4a4a4a;
   margin: 0;
   font-size: 1rem;
 }
@@ -68,17 +141,17 @@
 }
 
 .inputGroup label {
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: #000000;
   font-size: 0.9rem;
 }
 
 .inputGroup input {
   padding: 0.875rem;
-  border: 2px solid #e1e5e9;
+  border: 2px solid #e5e5e5;
   border-radius: 0.5rem;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -88,8 +161,8 @@
 
 .inputGroup input:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .submitBtn {
@@ -181,28 +254,32 @@
 
 /* Responsividade */
 @media (max-width: 768px) {
-  .container {
+  .authContainer {
     padding: 1rem;
-    align-items: flex-start;
-    padding-top: 2rem;
+    align-items: center;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
   
   .authCard {
     padding: 1.5rem;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
+    margin: 0;
+    max-height: 85vh;
+    overflow-y: auto;
   }
   
-  .header h1 {
+  .authHeader h1 {
     font-size: 1.75rem;
   }
 }
 
 @media (max-width: 480px) {
-  .container {
+  .authContainer {
     padding: 0.75rem;
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
   
   .authCard {
@@ -210,17 +287,23 @@
     min-width: unset;
     border-radius: 0.75rem;
     max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
   }
   
-  .header h1 {
+  .brandName {
     font-size: 1.5rem;
   }
   
-  .header p {
+  .authHeader h1 {
+    font-size: 1.5rem;
+  }
+  
+  .authHeader p {
     font-size: 0.9rem;
   }
   
-  .form {
+  .authForm {
     gap: 1.25rem;
   }
   
@@ -231,7 +314,7 @@
     -webkit-tap-highlight-color: transparent;
   }
   
-  .submitBtn {
+  .submitButton {
     padding: 0.875rem;
     font-size: 0.95rem;
     -webkit-tap-highlight-color: transparent;
@@ -241,15 +324,12 @@
 }
 
 @media (max-width: 360px) {
-  .container {
-    padding: 0.5rem;
-  }
-  
   .authCard {
     padding: 1rem;
+    max-height: 92vh;
   }
   
-  .header h1 {
+  .brandName {
     font-size: 1.25rem;
   }
   
@@ -258,30 +338,24 @@
   }
 }
 
-/* Para telas muito altas */
-@media (min-height: 800px) {
-  .container {
-    align-items: center;
-  }
-}
-
 /* Para orientação landscape em dispositivos móveis */
 @media (max-height: 500px) and (orientation: landscape) {
   .authContainer {
     padding: 0.5rem;
-    align-items: flex-start;
-    padding-top: 1rem;
+    align-items: center;
+    overflow: hidden;
   }
   
   .authCard {
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
+    margin: 0;
+    max-height: 95vh;
+    overflow-y: auto;
   }
 }
 
 /* Estilos para botões atualizados */
 .submitButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: white;
   border: none;
   padding: 1rem;
@@ -299,9 +373,25 @@
   min-height: 48px;
 }
 
+.submitButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.submitButton:hover:not(:disabled)::before {
+  left: 100%;
+}
+
 .submitButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
 }
 
 .submitButton:active:not(:disabled) {
@@ -327,13 +417,13 @@
 }
 
 .authLink {
-  color: #667eea;
+  color: #dc2626;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
 }
 
 .authLink:hover {
-  color: #764ba2;
+  color: #b91c1c;
   text-decoration: underline;
 }

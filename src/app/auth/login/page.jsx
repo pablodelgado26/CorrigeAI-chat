@@ -55,8 +55,14 @@ export default function LoginPage() {
     <div className={styles.container}>
       <div className={styles.authCard}>
         <div className={styles.header}>
-          <h1>🤖 CorrigeAI</h1>
-          <p>Faça login para continuar</p>
+          <div className={styles.logoContainer}>
+            <span className={styles.logoIcon}>🏫</span>
+            <div className={styles.brandInfo}>
+              <h1 className={styles.brandName}>CorrigeAI</h1>
+              <p className={styles.brandSubtitle}>Escola SESI</p>
+            </div>
+          </div>
+          <p className={styles.loginDescription}>Faça login para continuar</p>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>

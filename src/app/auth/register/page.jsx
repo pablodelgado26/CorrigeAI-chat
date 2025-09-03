@@ -69,6 +69,13 @@ export default function RegisterPage() {
     <div className={styles.authContainer}>
       <div className={styles.authCard}>
         <div className={styles.authHeader}>
+          <div className={styles.logoContainer}>
+            <span className={styles.logoIcon}>🏫</span>
+            <div className={styles.brandInfo}>
+              <h1 className={styles.brandName}>CorrigeAI</h1>
+              <p className={styles.brandSubtitle}>Escola SESI</p>
+            </div>
+          </div>
           <h1>Criar Conta</h1>
           <p>Cadastre-se para começar a usar o chat</p>
         </div>

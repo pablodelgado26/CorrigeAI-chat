@@ -40,8 +40,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(135deg, var(--sesi-red) 0%, var(--sesi-red-dark) 100%);
   color: white;
 }
 
@@ -62,13 +62,14 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--primary-color);
+  background: linear-gradient(135deg, var(--sesi-red) 0%, var(--sesi-red-dark) 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
 }
 
 .userInfo {
@@ -113,7 +114,8 @@
 
 .accountBtn:hover {
   background: var(--hover-bg);
-  border-color: var(--primary-color);
+  border-color: var(--sesi-red);
+  transform: translateX(4px);
 }
 
 .actionIcon {
@@ -174,8 +176,8 @@
 }
 
 .tab.active {
-  color: var(--primary-color);
-  border-bottom-color: var(--primary-color);
+  color: var(--sesi-red);
+  border-bottom-color: var(--sesi-red);
   background: var(--hover-bg);
 }
 
@@ -233,8 +235,9 @@
 }
 
 .conversaItem:hover {
-  border-color: #6366f1;
-  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.1);
+  border-color: var(--sesi-red);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+  transform: translateY(-1px);
 }
 
 .conversaHeader {
@@ -333,19 +336,22 @@
 .moreInfoBtn {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: var(--primary-color);
+  background: linear-gradient(135deg, var(--sesi-red) 0%, var(--sesi-red-dark) 100%);
   color: white;
   text-decoration: none;
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: background-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
   margin-top: 1rem;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
 }
 
 .moreInfoBtn:hover {
-  background: var(--accent-color);
+  background: linear-gradient(135deg, var(--sesi-red-dark) 0%, #991b1b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.35);
 }
 
 /* Responsividade para tablets */

@@ -10,17 +10,18 @@
   padding: 0.5rem;
   border-radius: 0.5rem;
   font-size: 1.25rem;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .uploadBtn:hover {
-  background: #f3f4f6;
-  color: #6366f1;
-  transform: scale(1.05);
+  background: var(--hover-bg);
+  color: var(--sesi-red);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
 }
 
 .uploadBtn:active {

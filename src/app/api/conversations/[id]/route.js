@@ -72,8 +72,34 @@ export async function PUT(request, { params }) {
 // DELETE - Deletar conversa específica
 export async function DELETE(request, { params }) {
   try {
+    // Verificar autenticação
+    const authResult = getUserFromToken(request)
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401 }
+      )
+    }
+
+    const userId = authResult.data.userId
     const { id } = await params
 
+    // Verificar se a conversa pertence ao usuário antes de deletar
+    const conversation = await prisma.conversation.findFirst({
+      where: { 
+        id,
+        userId
+      }
+    })
+
+    if (!conversation) {
+      return NextResponse.json(
+        { error: 'Conversa não encontrada' },
+        { status: 404 }
+      )
+    }
+
+    // Deletar a conversa
     await prisma.conversation.delete({
       where: { id }
     })
@@ -85,5 +111,7 @@ export async function DELETE(request, { params }) {
       { error: 'Erro ao deletar conversa' },
       { status: 500 }
     )
+  } finally {
+    await prisma.$disconnect()
   }
 }

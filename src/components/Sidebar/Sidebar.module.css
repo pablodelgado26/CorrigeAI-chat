@@ -1,39 +1,43 @@
 .sidebar {
   width: 280px;
-  background: var(--primary-bg);
+  background: var(--card-bg);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   transition: all 0.3s ease;
   height: 100%;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
 }
 
 .sidebarHeader {
   padding: 0.75rem;
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
+  background: var(--secondary-bg);
 }
 
 .newChatBtn {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  background: linear-gradient(135deg, var(--sesi-red) 0%, var(--sesi-red-dark) 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
 }
 
 .newChatBtn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.35);
+  background: linear-gradient(135deg, var(--sesi-red-dark) 0%, #991b1b 100%);
 }
 
 .plusIcon {
@@ -74,9 +78,10 @@
 
 .navLink:hover {
   background: var(--hover-bg);
-  color: var(--primary-color);
-  border-color: var(--primary-color);
-  transform: translateX(2px);
+  color: var(--sesi-red);
+  border-color: var(--sesi-red);
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
 }
 
 .navIcon {
@@ -135,8 +140,9 @@
 
 .aboutLink:hover {
   background: var(--hover-bg);
-  color: var(--primary-color);
-  transform: translateX(2px);
+  color: var(--sesi-red);
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
 }
 
 .aboutIcon {
@@ -160,8 +166,9 @@
 
 .themeToggle:hover {
   background: var(--hover-bg);
-  border-color: var(--primary-color);
-  transform: translateX(2px);
+  border-color: var(--sesi-red);
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
 }
 
 .themeIcon {

@@ -140,10 +140,7 @@ function ChatContainer() {
           content: message.content,
           type: message.type.toUpperCase(),
           image: message.image,
-          generatedImageUrl: message.generatedImageUrl,
-          hasPdfDownload: message.hasPdfDownload || false,
-          pdfContent: message.pdfContent,
-          isProofAnalysis: message.isProofAnalysis || false
+          generatedImageUrl: message.generatedImageUrl
         })
       })
       
@@ -182,9 +179,16 @@ function ChatContainer() {
   const clearConversation = async () => {
     try {
       if (currentConversationId) {
+        // Verificar se há headers de autenticação
+        const authHeaders = getAuthHeaders()
+        
         // Deletar conversa do banco
         const response = await fetch(`/api/conversations/${currentConversationId}`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+          }
         })
         
         if (response.ok) {
@@ -193,16 +197,40 @@ function ChatContainer() {
           if (newConversation) {
             setCurrentConversationId(newConversation.id)
           }
+        } else if (response.status === 401) {
+          console.error('Erro de autenticação ao deletar conversa')
+          setError({
+            type: 'auth',
+            message: 'Erro de autenticação. Faça login novamente.'
+          })
+        } else {
+          console.error('Erro ao deletar conversa:', response.status)
+          // Continuar com limpeza local mesmo se falhar no servidor
         }
       }
       
+      // Sempre limpar localmente
       setMessages([])
       localStorage.removeItem('corrigeai-messages')
+      
+      // Se não há conversa atual, criar uma nova
+      if (!currentConversationId) {
+        const newConversation = await createNewConversation()
+        if (newConversation) {
+          setCurrentConversationId(newConversation.id)
+        }
+      }
     } catch (error) {
       console.error('Erro ao limpar conversa:', error)
-      // Fallback para limpeza local
+      // Sempre fazer fallback para limpeza local
       setMessages([])
       localStorage.removeItem('corrigeai-messages')
+      
+      // Mostrar erro para o usuário
+      setError({
+        type: 'network',
+        message: 'Erro ao limpar conversa. A conversa foi limpa localmente.'
+      })
     }
   }
 
@@ -496,10 +524,7 @@ IMPORTANTE: Use apenas dados das imagens que conseguir ver claramente.`;
         id: Date.now() + 2,
         type: 'bot',
         content: data.response,
-        timestamp: new Date(),
-        hasPdfDownload: true,
-        pdfContent: data.response,
-        isProofAnalysis: isProofAnalysis
+        timestamp: new Date()
       }
       
       setMessages(prev => prev.map(msg => 

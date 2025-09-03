@@ -25,13 +25,13 @@
 }
 
 .developer {
-  color: var(--primary-color);
+  color: var(--sesi-red);
   font-weight: 600;
   transition: color 0.2s ease;
 }
 
 .developer:hover {
-  color: var(--accent-color);
+  color: var(--sesi-red-dark);
 }
 
 /* Responsividade */

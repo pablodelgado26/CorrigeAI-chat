@@ -93,9 +93,9 @@
 }
 
 .color-success {
-  color: #10b981;
-  border-color: rgba(16, 185, 129, 0.2);
-  border-top-color: #10b981;
+  color: var(--sesi-red);
+  border-color: rgba(220, 38, 38, 0.2);
+  border-top-color: var(--sesi-red);
 }
 
 .color-error {
