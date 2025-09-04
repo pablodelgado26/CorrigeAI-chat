@@ -106,14 +106,7 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Botão mobile para abrir sidebar */}
-      <button 
-        className={styles.mobileMenuButton}
-        onClick={toggleMobileMenu}
-        aria-label="Menu"
-      >
-        ☰
-      </button>
+
 
       {/* Overlay para mobile */}
       {isMobileMenuOpen && (

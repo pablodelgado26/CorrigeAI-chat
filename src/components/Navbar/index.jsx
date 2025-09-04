@@ -4,8 +4,8 @@ import React, { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../../contexts/AuthContext'
 import MobileMenu from '../MobileMenu/index.jsx'
-import LoginModal from '../LoginModal'
-import SignupModal from '../SignupModal'
+import LoginModal from '../LoginModal/index.jsx'
+import SignupModal from '../SignupModal/index.jsx'
 import styles from './Navbar.module.css'
 
 function Navbar() {
