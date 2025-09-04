@@ -7,18 +7,22 @@ import ImageUpload from '../ImageUpload'
 import ErrorMessage from '../ErrorMessage'
 import styles from './ChatContainer.module.css'
 
-function ChatContainer() {
+export default function ChatContainer({ 
+  currentConversationId, 
+  setCurrentConversationId, 
+  messages, 
+  setMessages,
+  loadConversations,
+  createConversationOnFirstMessage
+}) {
   const { getAuthHeaders } = useAuth()
-  const [messages, setMessages] = useState([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [uploadedImage, setUploadedImage] = useState(null)
   const [lastRequestTime, setLastRequestTime] = useState(0)
   const [requestCount, setRequestCount] = useState(0)
-  const [currentConversationId, setCurrentConversationId] = useState(null)
   const [lastUserMessage, setLastUserMessage] = useState(null)
   const [error, setError] = useState(null)
-  const [conversationsList, setConversationsList] = useState([])
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
 
@@ -26,104 +30,52 @@ function ChatContainer() {
   const RATE_LIMIT = 5
   const RATE_WINDOW = 60000 // 1 minuto em ms
 
-  // Carregar conversas salvas ao inicializar
+    // Carregar conversas salvas ao inicializar
   useEffect(() => {
-    initializeConversation()
-  }, [])
-
-  const initializeConversation = async () => {
-    try {
-      // Tentar carregar conversa do localStorage primeiro (migração gradual)
-      const savedMessages = localStorage.getItem('corrigeai-messages')
-      if (savedMessages) {
-        const parsedMessages = JSON.parse(savedMessages)
-        setMessages(parsedMessages)
-        
-        // Criar nova conversa no banco se há mensagens
-        if (parsedMessages.length > 0) {
-          const newConversation = await createNewConversation('Conversa Migrada')
-          if (newConversation) {
-            setCurrentConversationId(newConversation.id)
-            // Migrar mensagens para o banco
-            for (const msg of parsedMessages) {
-              await saveMessageToDatabase(newConversation.id, msg)
-            }
-            // Limpar localStorage após migração
-            localStorage.removeItem('corrigeai-messages')
-          }
-        }
-      } else {
-        // Criar nova conversa se não há dados
-        const newConversation = await createNewConversation()
-        if (newConversation) {
-          setCurrentConversationId(newConversation.id)
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao inicializar conversa:', error)
+    // O ChatLayout agora gerencia conversas, ChatContainer apenas exibe mensagens
+    // Se há mensagens e currentConversationId, não fazer nada
+    // Se não há mensagens mas há currentConversationId, carregar da API
+    if (currentConversationId && messages.length === 0) {
+      loadConversationMessages(currentConversationId)
     }
-  }
+  }, [currentConversationId])
 
-  const loadConversations = async () => {
+  const loadConversationMessages = async (conversationId) => {
     try {
       const authHeaders = getAuthHeaders()
       
-      const response = await fetch('/api/conversations', {
+      const response = await fetch(`/api/conversations/${conversationId}`, {
         headers: authHeaders
       })
-      
+
       if (response.ok) {
-        const conversations = await response.json()
-        setConversationsList(conversations)
-      } else if (response.status === 401) {
-        console.error('Erro de autenticação ao carregar conversas')
-        setError({
-          type: 'auth',
-          message: 'Erro de autenticação. Faça login novamente.'
-        })
+        const conversation = await response.json()
+        
+        // Carregar mensagens da conversa
+        const conversationMessages = conversation.messages.map(msg => ({
+          id: msg.id,
+          content: msg.content,
+          type: msg.isUser ? 'user' : 'bot',
+          timestamp: msg.createdAt,
+          savedToDb: true
+        }))
+        
+        setMessages(conversationMessages)
+      } else {
+        console.error('Erro ao carregar mensagens da conversa')
       }
     } catch (error) {
-      console.error('Erro ao carregar conversas:', error)
+      console.error('Erro ao carregar mensagens:', error)
     }
   }
 
-    const createNewConversation = async (title = 'Nova Conversa') => {
-    try {
-      const authHeaders = getAuthHeaders()
-      
-      const response = await fetch('/api/conversations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-        },
-        body: JSON.stringify({ title })
-      })
-
-      if (response.ok) {
-        const newConversation = await response.json()
-        setCurrentConversationId(newConversation.id)
-        setMessages([])
-        loadConversations() // Recarregar lista de conversas
-        return newConversation // Retornar a conversa criada
-      } else if (response.status === 401) {
-        console.error('Erro de autenticação ao criar conversa')
-        setError({
-          type: 'auth',
-          message: 'Erro de autenticação. Faça login novamente.'
-        })
-        return null
-      } else {
-        throw new Error('Erro ao criar conversa')
-      }
-    } catch (error) {
-      console.error('Erro ao criar nova conversa:', error)
-      setError({
-        type: 'network',
-        message: 'Erro ao criar nova conversa. Tente novamente.'
-      })
-      return null
-    }
+  // Função para gerar título automático baseado na primeira mensagem
+  const generateConversationTitle = (firstMessage) => {
+    if (!firstMessage) return 'Nova Conversa'
+    
+    // Pegar as primeiras palavras da mensagem do usuário
+    const words = firstMessage.content.split(' ').slice(0, 4).join(' ')
+    return words.length > 30 ? words.substring(0, 30) + '...' : words
   }
 
   const saveMessageToDatabase = async (conversationId, message) => {
@@ -165,72 +117,36 @@ function ChatContainer() {
       // Salvar última mensagem no banco se ainda não foi salva
       const lastMessage = messages[messages.length - 1]
       if (lastMessage && !lastMessage.savedToDb) {
+        console.log('💾 Salvando mensagem no banco:', lastMessage.content.substring(0, 50) + '...')
         saveMessageToDatabase(currentConversationId, lastMessage)
           .then(() => {
+            console.log('✅ Mensagem salva com sucesso')
             // Marcar como salva
             setMessages(prev => prev.map(msg => 
               msg.id === lastMessage.id ? { ...msg, savedToDb: true } : msg
             ))
           })
+          .catch(error => {
+            console.error('❌ Erro ao salvar mensagem:', error)
+          })
       }
     }
   }, [messages, currentConversationId])
 
+  // Função para limpar conversa (apenas local, criação de nova conversa é responsabilidade do ChatLayout)
   const clearConversation = async () => {
     try {
-      if (currentConversationId) {
-        // Verificar se há headers de autenticação
-        const authHeaders = getAuthHeaders()
-        
-        // Deletar conversa do banco
-        const response = await fetch(`/api/conversations/${currentConversationId}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            ...authHeaders
-          }
-        })
-        
-        if (response.ok) {
-          // Criar nova conversa
-          const newConversation = await createNewConversation()
-          if (newConversation) {
-            setCurrentConversationId(newConversation.id)
-          }
-        } else if (response.status === 401) {
-          console.error('Erro de autenticação ao deletar conversa')
-          setError({
-            type: 'auth',
-            message: 'Erro de autenticação. Faça login novamente.'
-          })
-        } else {
-          console.error('Erro ao deletar conversa:', response.status)
-          // Continuar com limpeza local mesmo se falhar no servidor
-        }
-      }
-      
       // Sempre limpar localmente
       setMessages([])
       localStorage.removeItem('corrigeai-messages')
       
-      // Se não há conversa atual, criar uma nova
-      if (!currentConversationId) {
-        const newConversation = await createNewConversation()
-        if (newConversation) {
-          setCurrentConversationId(newConversation.id)
-        }
-      }
+      // Notificar que precisa criar nova conversa (via callback se necessário)
+      // O ChatLayout será responsável por gerenciar a criação
     } catch (error) {
       console.error('Erro ao limpar conversa:', error)
       // Sempre fazer fallback para limpeza local
       setMessages([])
       localStorage.removeItem('corrigeai-messages')
-      
-      // Mostrar erro para o usuário
-      setError({
-        type: 'network',
-        message: 'Erro ao limpar conversa. A conversa foi limpa localmente.'
-      })
     }
   }
 
@@ -837,5 +753,3 @@ ${data.text || 'Nenhum texto detectado'}
     </main>
   )
 }
-
-export default ChatContainer
