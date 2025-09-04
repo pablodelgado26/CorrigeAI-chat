@@ -12,21 +12,27 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 4rem 0;
+  padding: 4rem 2rem;
+  margin: 0 auto;
 }
 
 .content {
   max-width: 1200px;
-  margin: 2rem auto;
-  padding: 2rem 1.5rem 4rem;
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* HEADER BRANDING */
 .header {
   text-align: center;
   margin-bottom: 4rem;
-  padding: 3rem 0;
+  padding: 3rem 2rem;
+  width: 100%;
+  max-width: 1000px;
   background: linear-gradient(135deg, var(--sesi-red) 0%, var(--sesi-red-dark) 100%);
   border-radius: 24px;
   color: white;
@@ -98,6 +104,8 @@
   border-radius: 20px;
   padding: 2.5rem;
   margin-bottom: 2rem;
+  width: 100%;
+  max-width: 1000px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border-color);
   opacity: 0;
@@ -144,6 +152,8 @@
   border-radius: 16px;
   padding: 2rem;
   margin: 2rem 0;
+  width: 100%;
+  max-width: 1000px;
   position: relative;
 }
 
@@ -405,6 +415,8 @@
   text-align: center;
   border-radius: 24px;
   padding: 4rem 2rem;
+  width: 100%;
+  max-width: 1000px;
   position: relative;
   overflow: hidden;
 }
@@ -479,17 +491,26 @@
 /* ===== RESPONSIVIDADE ===== */
 @media (max-width: 768px) {
   .container {
-    padding: 2rem 0;
+    padding: 2rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
   }
   
   .content {
-    padding: 1rem 1rem 3rem;
-    margin: 1rem auto;
+    padding: 1rem 0 3rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
   }
   
   .header {
     padding: 2rem 1rem;
     margin-bottom: 2rem;
+    width: 100%;
+    max-width: 100%;
   }
   
   .headerBrand {
@@ -541,12 +562,12 @@
 
 @media (max-width: 480px) {
   .container {
-    padding: 1rem 0;
+    padding: 1rem 0.5rem;
   }
   
   .content {
-    padding: 0.5rem 0.5rem 2rem;
-    margin: 0.5rem auto;
+    padding: 0.5rem 0 2rem;
+    margin: 0 auto;
   }
   
   .header {
