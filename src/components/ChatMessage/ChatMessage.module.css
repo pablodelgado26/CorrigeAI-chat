@@ -15,7 +15,6 @@
 /* Mensagem do usuário - à direita */
 .userMessage {
   justify-content: flex-end;
-  flex-direction: row-reverse;
 }
 
 /* Mensagem da IA - à esquerda */
@@ -277,6 +276,61 @@
 
 .messageImage:hover img {
   transform: scale(1.02);
+}
+
+/* Caption e ações das imagens */
+.imageCaption {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.aiMessage .imageCaption {
+  color: var(--text-secondary);
+}
+
+.imageActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  justify-content: center;
+}
+
+.downloadImageBtn,
+.openImageBtn {
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  text-decoration: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.aiMessage .downloadImageBtn,
+.aiMessage .openImageBtn {
+  background: var(--sesi-red);
+  border-color: var(--sesi-red);
+  color: white;
+}
+
+.downloadImageBtn:hover,
+.openImageBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.aiMessage .downloadImageBtn:hover,
+.aiMessage .openImageBtn:hover {
+  background: var(--sesi-red-dark);
+  transform: translateY(-1px);
 }
 
 /* Estados de carregamento e erro */

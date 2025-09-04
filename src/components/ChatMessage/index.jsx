@@ -324,20 +324,27 @@ function ChatMessage({ message }) {
   }
 
   return (
-    <div className={`${styles.message} ${styles[message.type]}`}>
-      <div className={styles.messageContent}>
+    <div className={`${styles.messageContainer} ${message.type === 'user' ? styles.userMessage : styles.aiMessage}`}>
+      {/* Avatar da IA - só mostra à esquerda para mensagens da IA */}
+      {message.type !== 'user' && (
+        <div className={styles.messageAvatar}>
+          🤖
+        </div>
+      )}
+      
+      {/* Bubble da mensagem */}
+      <div className={styles.messageBubble}>
         {message.image && (
-          <div className={styles.imageContainer}>
-            <img src={message.image} alt="Imagem enviada" className={styles.messageImage} />
+          <div className={styles.messageImage}>
+            <img src={message.image} alt="Imagem enviada" />
           </div>
         )}
         
         {message.generatedImageUrl && !imageError && (
-          <div className={styles.imageContainer}>
+          <div className={styles.messageImage}>
             <img 
               src={message.generatedImageUrl} 
               alt="Imagem gerada por IA" 
-              className={styles.messageImage}
               onError={() => setImageError(true)}
               onLoad={() => setImageError(false)}
             />
@@ -364,19 +371,17 @@ function ChatMessage({ message }) {
         )}
         
         {message.generatedImageUrl && imageError && (
-          <div className={styles.imageContainer}>
-            <div className={styles.imageError}>
-              <span className={styles.errorIcon}>🖼️</span>
-              <p>Não foi possível carregar a imagem</p>
-              <a 
-                href={message.generatedImageUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className={styles.imageLink}
-              >
-                📎 Abrir imagem em nova aba
-              </a>
-            </div>
+          <div className={styles.imageError}>
+            <span className={styles.errorIcon}>🖼️</span>
+            <p>Não foi possível carregar a imagem</p>
+            <a 
+              href={message.generatedImageUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={styles.imageLink}
+            >
+              📎 Abrir imagem em nova aba
+            </a>
           </div>
         )}
         
@@ -406,10 +411,17 @@ function ChatMessage({ message }) {
           </div>
         )}
         
-        <div className={styles.messageTime}>
+        <div className={styles.messageTimestamp}>
           {formatTimestamp(message.timestamp)}
         </div>
       </div>
+      
+      {/* Avatar do usuário - só mostra à direita para mensagens do usuário */}
+      {message.type === 'user' && (
+        <div className={styles.messageAvatar}>
+          👤
+        </div>
+      )}
     </div>
   )
 }
