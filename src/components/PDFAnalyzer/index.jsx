@@ -89,17 +89,30 @@ export default function PDFAnalyzer() {
       formData.append('pdf', file)
       formData.append('analysisType', analysisType)
 
-      console.log('Iniciando análise do PDF:', file.name)
+      console.log('🚀 Iniciando análise do PDF:', file.name)
+      showSuccess('Iniciando análise do PDF...')
 
       const response = await fetch('/api/pdf/analyze', {
         method: 'POST',
         body: formData
       })
 
-      const data = await response.json()
+      console.log('📡 Resposta recebida:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      })
+
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        console.error('❌ Erro ao parsear resposta JSON:', parseError)
+        throw new Error('Resposta inválida do servidor. Verifique se o serviço está funcionando.')
+      }
 
       if (!response.ok) {
-        console.error('Erro na resposta da API:', {
+        console.error('❌ Erro na resposta da API:', {
           status: response.status,
           statusText: response.statusText,
           data: data
@@ -107,28 +120,58 @@ export default function PDFAnalyzer() {
         
         // Mensagens mais específicas baseadas no status
         let errorMessage = 'Erro na análise do PDF'
+        
         if (response.status === 422) {
-          errorMessage = data.error || 'Falha ao extrair texto do PDF. Verifique se o arquivo não está corrompido.'
+          errorMessage = data.error || 'Falha ao processar o PDF. Verifique se o arquivo não está corrompido ou protegido por senha.'
         } else if (response.status === 400) {
-          errorMessage = data.error || 'Dados inválidos enviados'
+          errorMessage = data.error || 'Dados inválidos. Verifique se selecionou um arquivo PDF válido.'
+        } else if (response.status === 413) {
+          errorMessage = 'Arquivo muito grande para processamento. Tente com um arquivo menor.'
+        } else if (response.status === 429) {
+          errorMessage = 'Muitas requisições. Aguarde alguns minutos antes de tentar novamente.'
         } else if (response.status === 500) {
-          errorMessage = 'Erro interno do servidor. Tente novamente.'
+          errorMessage = 'Erro interno do servidor. Tente novamente em alguns minutos.'
+        } else if (response.status === 503) {
+          errorMessage = 'Serviço temporariamente indisponível. Tente novamente em alguns minutos.'
+        } else {
+          errorMessage = data.error || `Erro ${response.status}: ${response.statusText}`
         }
         
         throw new Error(errorMessage)
       }
 
-      if (data.success) {
+      if (data.success && data.data) {
         setResult(data.data)
         showSuccess('PDF analisado com sucesso!')
-        console.log('Análise concluída:', data.data)
+        console.log('✅ Análise concluída:', {
+          tipo: data.data.analysisType,
+          paginas: data.data.fileInfo?.pages,
+          estrutura: data.data.processingInfo?.structureAnalyzed
+        })
       } else {
-        throw new Error(data.error || 'Falha na análise')
+        throw new Error(data.error || 'Resposta inválida do servidor')
       }
 
     } catch (error) {
-      console.error('Erro na análise:', error)
-      const errorMessage = error.message || 'Erro inesperado na análise'
+      console.error('💥 Erro na análise:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      })
+      
+      let errorMessage = error.message
+      
+      // Tratamentos específicos para diferentes tipos de erro
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.'
+      } else if (error.message.includes('NetworkError')) {
+        errorMessage = 'Erro de rede. Verifique sua conexão e tente novamente.'
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Operação demorou muito. Tente com um arquivo menor.'
+      } else if (!errorMessage || errorMessage === 'Failed to fetch') {
+        errorMessage = 'Erro de comunicação com o servidor. Verifique se o serviço está funcionando.'
+      }
+      
       setError(errorMessage)
       showError(errorMessage)
     } finally {
@@ -339,6 +382,29 @@ ${new Date().toLocaleString('pt-BR')}
             <div className={styles.summaryItem}>
               <strong>Tipo de análise:</strong> {analysisTypes.find(t => t.value === result.analysisType)?.label}
             </div>
+            {result.processingInfo?.structureAnalyzed && (
+              <div className={styles.summaryItem}>
+                <strong>Estrutura identificada:</strong> 
+                <span className={styles.structureTag}>
+                  {result.processingInfo.structureAnalyzed === 'exam_with_answer_key' && '📝 Prova com Gabarito'}
+                  {result.processingInfo.structureAnalyzed === 'answer_key_only' && '🎯 Apenas Gabarito'}
+                  {result.processingInfo.structureAnalyzed === 'student_exam' && '👨‍🎓 Prova de Aluno'}
+                  {result.processingInfo.structureAnalyzed === 'exam_or_test' && '📄 Prova/Teste'}
+                  {result.processingInfo.structureAnalyzed === 'general_document' && '📄 Documento Geral'}
+                  {!['exam_with_answer_key', 'answer_key_only', 'student_exam', 'exam_or_test', 'general_document'].includes(result.processingInfo.structureAnalyzed) && '📄 Outro'}
+                </span>
+                {result.processingInfo.confidence && (
+                  <span className={styles.confidenceTag}>
+                    Confiança: {Math.round(result.processingInfo.confidence * 100)}%
+                  </span>
+                )}
+              </div>
+            )}
+            {result.processingInfo?.chunksUsed && (
+              <div className={styles.summaryItem}>
+                <strong>Processamento:</strong> Analisado em {result.processingInfo.chunksCount} partes
+              </div>
+            )}
           </div>
 
           <div className={styles.analysisContent}>
@@ -358,6 +424,21 @@ ${new Date().toLocaleString('pt-BR')}
                 <div><strong>Autor:</strong> {result.metadata.author}</div>
                 <div><strong>Assunto:</strong> {result.metadata.subject}</div>
                 <div><strong>Criador:</strong> {result.metadata.creator}</div>
+                
+                {result.metadata.analysisContext && (
+                  <>
+                    {result.metadata.analysisContext.hasGabarito && (
+                      <div className={styles.specialInfo}>
+                        <strong>🎯 Gabarito detectado:</strong> Sim
+                      </div>
+                    )}
+                    {result.metadata.analysisContext.hasStudentNames && (
+                      <div className={styles.specialInfo}>
+                        <strong>👨‍🎓 Nomes de alunos:</strong> Detectados
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           )}

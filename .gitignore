@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -40,36 +41,24 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Python virtual environments
-python-backend/venv/
-python-backend/env/
-
-# Reports and generated files
-python-backend/reports/*.pdf
-python-backend/reports/*.json
-
+# Prisma generated files
 /src/generated/prisma
+
+# Temp files and backups
+*.tmp
+*.log
+*.backup
+*~
+*_old.*
+*_new.*
+*_temp.*
+
+# IDE files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+.DS_Store

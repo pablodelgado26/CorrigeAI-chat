@@ -2,9 +2,39 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import Cookies from 'js-cookie'
 
 const AuthContext = createContext({})
+
+// Utilitário para gerenciar cookies manualmente
+const cookieUtils = {
+  set: (name, value, days = 7) => {
+    if (typeof document !== 'undefined') {
+      const expires = new Date()
+      expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000))
+      document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`
+    }
+  },
+  
+  get: (name) => {
+    if (typeof document === 'undefined') return null
+    
+    const nameEQ = name + "="
+    const ca = document.cookie.split(';')
+    
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i]
+      while (c.charAt(0) === ' ') c = c.substring(1, c.length)
+      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length)
+    }
+    return null
+  },
+  
+  remove: (name) => {
+    if (typeof document !== 'undefined') {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+    }
+  }
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -18,8 +48,10 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     try {
-      Cookies.remove('authToken')
-      localStorage.removeItem('user')
+      cookieUtils.remove('authToken')
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('user')
+      }
       setUser(null)
       router.push('/auth/login')
     } catch (error) {
@@ -30,8 +62,8 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkAuthStatus = () => {
       try {
-        const token = Cookies.get('authToken')
-        const userData = localStorage.getItem('user')
+        const token = cookieUtils.get('authToken')
+        const userData = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null
 
         if (token && userData) {
           setUser(JSON.parse(userData))
@@ -60,8 +92,10 @@ export function AuthProvider({ children }) {
 
   const login = useCallback((userData, token) => {
     try {
-      Cookies.set('authToken', token, { expires: 7 })
-      localStorage.setItem('user', JSON.stringify(userData))
+      cookieUtils.set('authToken', token, 7)
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(userData))
+      }
       setUser(userData)
       router.push('/')
     } catch (error) {
@@ -97,7 +131,7 @@ export function AuthProvider({ children }) {
   }, [login])
 
   const getAuthHeaders = useCallback(() => {
-    const token = Cookies.get('authToken')
+    const token = cookieUtils.get('authToken')
     return token ? { 'Authorization': `Bearer ${token}` } : {}
   }, [])
 

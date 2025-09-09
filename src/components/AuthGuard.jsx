@@ -1,16 +1,25 @@
 'use client'
 
 import { useAuth } from '../contexts/AuthContext'
-import styles from './loading.module.css'
+import Loading from './Loading/index.jsx'
 
 function AuthGuard({ children }) {
   const { loading } = useAuth()
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Verificando autenticação...</p>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '200px',
+        textAlign: 'center'
+      }}>
+        <Loading />
+        <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>
+          Verificando autenticação...
+        </p>
       </div>
     )
   }
