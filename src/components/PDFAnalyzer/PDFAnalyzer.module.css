@@ -24,6 +24,26 @@
   color: var(--text-secondary);
   font-size: 1.1rem;
   line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.supportedFormats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.format {
+  background: var(--primary-bg);
+  color: var(--sesi-red);
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-weight: 500;
+  border: 1px solid var(--border-color);
 }
 
 /* Upload Area */
@@ -430,6 +450,66 @@
 
 .warningBox strong {
   color: #92400e;
+}
+
+/* Novos estilos para formatos Excel */
+.formatTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.formatTab {
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.formatTab h5 {
+  margin: 0 0 0.5rem 0;
+  color: var(--sesi-red);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.formatTab ul {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.binaryExamples {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.exampleFormat {
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.exampleFormat h6 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.exampleFormat pre {
+  background: var(--primary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  overflow-x: auto;
 }
 
 /* Responsividade */

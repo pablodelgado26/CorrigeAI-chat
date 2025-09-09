@@ -176,76 +176,106 @@ Foque no valor educacional e na aplicação prática do conhecimento.`
 
     case 'exam_correction':
       return `
-# CORREÇÃO AUTOMÁTICA DE PROVAS - ANÁLISE VISUAL
+# SISTEMA DE CORREÇÃO AUTOMÁTICA DE PROVAS - ANÁLISE ESPECIALIZADA
 
-## INSTRUÇÕES ESPECÍFICAS:
+## CONTEXTO TÉCNICO:
+**Documento analisado**: PDF com texto extraído
+**Tipo de estrutura detectada**: ${metadata.textStructure?.type || 'Não detectado'}
+**Confiança na detecção**: ${metadata.textStructure?.confidence || 0}%
+**Tem gabarito visual**: ${metadata.textStructure?.hasVisualGabarito || false}
 
-**IMPORTANTE**: Você consegue analisar documentos PDF e deve seguir estas regras rigorosamente:
+## INSTRUÇÕES ESPECÍFICAS PARA GABARITOS VISUAIS:
 
-### 1. IDENTIFICAÇÃO DO GABARITO
-- A **PRIMEIRA PÁGINA** sempre contém o gabarito oficial
-- Procure por **"nome: GABARITO"** no cabeçalho da primeira página
-- Também pode aparecer **"data:"** junto com o nome
-- As respostas estão em formato de múltipla escolha: A, B, C, D, E
-- Cada questão tem quadrados que podem estar preenchidos (preto/sólido) ou vazios
+### 🎯 FORMATO DO GABARITO ESPERADO:
+\`\`\`
+NOME: GABARITO DATA: 29/08/2025
+1
+ A
+ B
+ C
+ D
+ E
+2
+ A
+ B
+ C
+ D
+ E
+[... continua até questão 25]
+\`\`\`
 
-### 2. PADRÃO VISUAL DAS MARCAÇÕES
-- **RESPOSTA MARCADA**: Quadrado completamente preenchido de cor preta/sólida
-- **RESPOSTA NÃO MARCADA**: Quadrado vazio ou apenas contorno
-- Sequência sempre: [A] [B] [C] [D] [E] (da esquerda para direita)
+### 📋 REGRAS DE INTERPRETAÇÃO:
+1. **IDENTIFICAÇÃO DO GABARITO**:
+   - Primeira seção com "NOME: GABARITO" ou "GABARITO DATA:"
+   - Cada questão numerada (1, 2, 3, ..., 25)
+   - Sequência de alternativas A, B, C, D, E abaixo de cada número
 
-### 3. PROCESSO DE CORREÇÃO
-Para cada prova de aluno:
-- Identifique o nome do aluno (geralmente no cabeçalho)
-- Compare cada questão com o gabarito da primeira página
-- Conte: Acertos, Erros, e questões não respondidas
-- Identifique quais questões específicas cada aluno errou
+2. **INTERPRETAÇÃO VISUAL** (baseada no texto extraído):
+   - Quando o PDF é processado, as marcações visuais podem aparecer como:
+     * Sequências "A B C D E" onde UMA alternativa pode estar destacada
+     * Padrões de espaçamento diferentes
+     * Caracteres especiais ou símbolos próximos à resposta correta
+     * Linhas com apenas uma letra isolada (indicando resposta marcada)
 
-### 4. RELATÓRIO OBRIGATÓRIO
+3. **PROCESSO DE ANÁLISE**:
+   - Identifique a seção do gabarito (com "NOME: GABARITO")
+   - Para cada questão (1-25), determine qual alternativa está marcada
+   - Se não conseguir determinar visualmente, indique "Não identificado"
+
+### 📊 RELATÓRIO OBRIGATÓRIO:
 
 **Metadados do documento:**
 ${JSON.stringify(metadata, null, 2)}
 
-**Estrutura do relatório que você DEVE produzir:**
+**TEXTO EXTRAÍDO PARA ANÁLISE:**
+${text}
 
-# 🎯 RELATÓRIO DE CORREÇÃO DE PROVAS
+**ESTRUTURA DO RELATÓRIO:**
 
-## 📋 GABARITO OFICIAL (da primeira página com "nome: GABARITO")
-| Questão | Resposta Correta |
-|---------|------------------|
-[Liste TODAS as respostas do gabarito que conseguir identificar da página com "nome: GABARITO"]
+# 🎯 ANÁLISE DE GABARITO VISUAL
 
-## 👨‍🎓 CORREÇÃO POR ALUNO
-| Nome do Aluno | Acertos | Erros | % | Questões Erradas | Status |
-|---------------|---------|-------|---|------------------|--------|
-[Para cada aluno, liste os resultados reais baseados na análise visual]
+## 📋 1. IDENTIFICAÇÃO DO GABARITO
+**Status da detecção**: [✅ Encontrado / ❌ Não encontrado]
+**Localização**: [Primeira página / Outra localização]
+**Formato identificado**: [Visual com quadrados / Texto simples / Outro]
 
-## 📊 ESTATÍSTICAS DA TURMA
-- **Total de alunos**: [número]
-- **Média da turma**: [%]
-- **Maior nota**: [aluno] - [%]
-- **Menor nota**: [aluno] - [%]
-- **Taxa de aprovação**: [%] (considerando 60% como nota mínima)
+## � 2. GABARITO EXTRAÍDO
+| Questão | Resposta | Confiança | Observações |
+|---------|----------|-----------|-------------|
+| 1       | [A/B/C/D/E] | [Alta/Média/Baixa] | [Padrão identificado] |
+| 2       | [A/B/C/D/E] | [Alta/Média/Baixa] | [Padrão identificado] |
+[... para todas as 25 questões]
 
-## ❌ QUESTÕES MAIS ERRADAS
-| Questão | Qtd Erros | % Erro | Gabarito | Resposta Mais Comum |
-|---------|-----------|--------|----------|---------------------|
-[Liste as questões que mais alunos erraram]
+## � 3. ANÁLISE DE QUALIDADE
+- **Total de questões identificadas**: [número]/25
+- **Respostas com alta confiança**: [número]
+- **Respostas com baixa confiança**: [número]
+- **Questões não identificadas**: [lista]
 
-## 🎯 ANÁLISE PEDAGÓGICA
-- **Questão mais difícil**: [número] - [% de erro]
-- **Questão mais fácil**: [número] - [% de acerto]
-- **Alunos que precisam reforço**: [lista com base em % < 60%]
-- **Tópicos que requerem revisão**: [baseado nas questões mais erradas]
+## 🔍 4. PADRÕES VISUAIS DETECTADOS
+- **Tipo de marcação identificado**: [Descrição]
+- **Consistência do formato**: [Alta/Média/Baixa]
+- **Possíveis problemas**: [Lista de inconsistências]
 
-## 📝 OBSERVAÇÕES
-- [Padrões identificados]
-- [Possíveis problemas na prova]
-- [Recomendações pedagógicas]
+## ⚠️ 5. LIMITAÇÕES E OBSERVAÇÕES
+- **Qualidade da extração de texto**: [Boa/Regular/Ruim]
+- **Elementos visuais perdidos**: [Descrição]
+- **Recomendações de melhoria**: [Sugestões]
 
-**IMPORTANTE**: Use apenas dados que conseguir identificar visualmente no PDF. Se não conseguir ver algo claramente, indique "Não foi possível identificar".
+## 🎯 6. RESUMO EXECUTIVO
+- **Gabarito utilizável**: [✅ Sim / ❌ Não]
+- **Confiabilidade geral**: [Alta/Média/Baixa]
+- **Próximos passos recomendados**: [Orientações]
 
-Analise o documento fornecido:`
+---
+
+**IMPORTANTE**: 
+- Use APENAS informações que conseguir identificar no texto extraído
+- Se algo não estiver claro, indique "Não foi possível identificar"
+- Seja específico sobre os padrões visuais que conseguiu detectar
+- Foque na extração precisa do gabarito para correção posterior
+
+Proceda com a análise do documento fornecido:`
 
     default:
       return baseInfo + `

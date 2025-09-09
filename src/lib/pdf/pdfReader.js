@@ -340,6 +340,201 @@ export function extractMetadata(pdfData) {
 }
 
 /**
+ * Processa especificamente gabaritos visuais com formato NOME: GABARITO
+ * @param {string} text - Texto extraído do PDF
+ * @returns {Object} Gabarito estruturado extraído
+ */
+export function extractVisualAnswerKey(text) {
+  console.log('🎯 Extraindo gabarito visual...')
+  
+  try {
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0)
+    const answerKey = {}
+    const extractionLog = []
+    
+    // Encontra o início do gabarito
+    let gabaritoStartIndex = -1
+    for (let i = 0; i < lines.length; i++) {
+      if (/nome:\s*gabarito/i.test(lines[i]) || 
+          /gabarito\s*data:/i.test(lines[i]) ||
+          /^gabarito$/i.test(lines[i])) {
+        gabaritoStartIndex = i
+        extractionLog.push(`Gabarito encontrado na linha ${i}: "${lines[i]}"`)
+        break
+      }
+    }
+    
+    if (gabaritoStartIndex === -1) {
+      return {
+        success: false,
+        message: 'Gabarito não encontrado no texto',
+        answerKey: {},
+        extractionLog
+      }
+    }
+    
+    // Processa as questões a partir do gabarito encontrado
+    let currentQuestion = null
+    const maxQuestions = 30 // Máximo de questões para processar
+    
+    for (let i = gabaritoStartIndex + 1; i < lines.length && Object.keys(answerKey).length < maxQuestions; i++) {
+      const line = lines[i].trim()
+      
+      // Verifica se é um número de questão
+      if (/^\d+$/.test(line)) {
+        currentQuestion = parseInt(line)
+        extractionLog.push(`Questão ${currentQuestion} identificada`)
+        continue
+      }
+      
+      // NOVO: Verifica padrões binários (0/1) para cada questão
+      if (currentQuestion && /^[01\s]+$/.test(line) && line.replace(/\s/g, '').length === 5) {
+        const binaryPattern = line.replace(/\s/g, '')
+        const answerIndex = binaryPattern.indexOf('1')
+        
+        if (answerIndex !== -1 && answerIndex < 5) {
+          const answerLetter = String.fromCharCode(65 + answerIndex) // A=65, B=66, etc.
+          answerKey[currentQuestion] = answerLetter
+          extractionLog.push(`Q${currentQuestion}: Resposta ${answerLetter} (padrão binário: ${binaryPattern})`)
+          currentQuestion = null
+          continue
+        }
+      }
+      
+      // NOVO: Verifica padrões com espaços (0 1 0 0 0)
+      if (currentQuestion && /^[01](\s+[01]){4}$/.test(line)) {
+        const binaryValues = line.split(/\s+/)
+        const answerIndex = binaryValues.indexOf('1')
+        
+        if (answerIndex !== -1 && answerIndex < 5) {
+          const answerLetter = String.fromCharCode(65 + answerIndex)
+          answerKey[currentQuestion] = answerLetter
+          extractionLog.push(`Q${currentQuestion}: Resposta ${answerLetter} (padrão espaçado: ${line})`)
+          currentQuestion = null
+          continue
+        }
+      }
+      
+      // Verifica se é uma alternativa isolada (resposta marcada)
+      if (currentQuestion && /^[abcde]$/i.test(line)) {
+        answerKey[currentQuestion] = line.toUpperCase()
+        extractionLog.push(`Q${currentQuestion}: Resposta ${line.toUpperCase()} (linha isolada)`)
+        currentQuestion = null
+        continue
+      }
+      
+      // Verifica sequência de alternativas e tenta identificar a marcada
+      if (currentQuestion && /[abcde]/i.test(line)) {
+        // Padrão: procura por indicadores de resposta marcada
+        const alternatives = line.match(/[abcde]/gi)
+        if (alternatives && alternatives.length <= 5) {
+          // Se tem apenas uma alternativa na linha, provavelmente é a resposta
+          if (alternatives.length === 1) {
+            answerKey[currentQuestion] = alternatives[0].toUpperCase()
+            extractionLog.push(`Q${currentQuestion}: Resposta ${alternatives[0].toUpperCase()} (única na linha)`)
+            currentQuestion = null
+            continue
+          }
+          
+          // Se tem todas as alternativas, procura por padrões especiais
+          if (alternatives.length === 5) {
+            // Procura por uma alternativa que está separada ou destacada
+            const parts = line.split(/\s+/)
+            for (const part of parts) {
+              if (/^[abcde]$/i.test(part)) {
+                // Se encontrou uma letra isolada, pode ser a resposta
+                const isolated = part.toUpperCase()
+                answerKey[currentQuestion] = isolated
+                extractionLog.push(`Q${currentQuestion}: Resposta ${isolated} (isolada na sequência)`)
+                currentQuestion = null
+                break
+              }
+            }
+          }
+        }
+      }
+      
+      // NOVO: Verifica padrões mistos (A=1, B=0, C=0, D=0, E=0)
+      if (currentQuestion && /[abcde]\s*[=:]\s*[01]/gi.test(line)) {
+        const matches = line.match(/([abcde])\s*[=:]\s*([01])/gi)
+        if (matches) {
+          for (const match of matches) {
+            const [, letter, value] = match.match(/([abcde])\s*[=:]\s*([01])/i)
+            if (value === '1') {
+              answerKey[currentQuestion] = letter.toUpperCase()
+              extractionLog.push(`Q${currentQuestion}: Resposta ${letter.toUpperCase()} (formato A=1)`)
+              currentQuestion = null
+              break
+            }
+          }
+        }
+      }
+      
+      // Para de processar se sair da seção de gabarito (encontrar outro nome ou seção)
+      if (/nome:\s*[a-z]/i.test(line) && !/gabarito/i.test(line)) {
+        extractionLog.push(`Fim do gabarito detectado: nova seção encontrada`)
+        break
+      }
+    }
+    
+    // Tenta análise alternativa se não encontrou respostas suficientes
+    if (Object.keys(answerKey).length < 5) {
+      extractionLog.push('Tentando análise alternativa...')
+      
+      // Método alternativo: procura por padrões mais flexíveis
+      const gabaritoSection = lines.slice(gabaritoStartIndex, gabaritoStartIndex + 100)
+      let question = 1
+      
+      for (const line of gabaritoSection) {
+        // Procura por linhas que contenham exatamente uma letra A-E
+        const singleLetter = line.match(/^[abcde]$/i)
+        if (singleLetter && question <= 25) {
+          answerKey[question] = singleLetter[0].toUpperCase()
+          extractionLog.push(`Q${question}: ${singleLetter[0].toUpperCase()} (método alternativo)`)
+          question++
+        }
+        
+        // NOVO: Procura padrões binários simples em linhas separadas
+        if (/^[01]+$/.test(line) && line.length === 5 && question <= 25) {
+          const answerIndex = line.indexOf('1')
+          if (answerIndex !== -1) {
+            const answerLetter = String.fromCharCode(65 + answerIndex)
+            answerKey[question] = answerLetter
+            extractionLog.push(`Q${question}: ${answerLetter} (binário simples: ${line})`)
+            question++
+          }
+        }
+      }
+    }
+    
+    const questionsFound = Object.keys(answerKey).length
+    const success = questionsFound >= 5
+    
+    console.log(`   ✅ Gabarito extraído: ${questionsFound} questões`)
+    
+    return {
+      success,
+      message: success 
+        ? `Gabarito extraído com sucesso: ${questionsFound} questões` 
+        : `Apenas ${questionsFound} questões identificadas (mínimo: 5)`,
+      answerKey,
+      questionsFound,
+      extractionLog,
+      gabaritoStartIndex
+    }
+    
+  } catch (error) {
+    console.error('❌ Erro na extração do gabarito visual:', error)
+    return {
+      success: false,
+      message: `Erro na extração: ${error.message}`,
+      answerKey: {},
+      extractionLog: [`Erro: ${error.message}`]
+    }
+  }
+}
+
+/**
  * Analisa o texto extraído para identificar padrões de gabarito e provas
  * @param {string} text - Texto extraído do PDF
  * @returns {Object} Análise estruturada do conteúdo
@@ -358,20 +553,30 @@ export function analyzeTextStructure(text) {
       hasStudentNames: false,
       hasQuestions: false,
       hasAnswerChoices: false,
+      hasVisualGabarito: false,
+      hasDateField: false,
       patterns: {
         gabarito: [],
         studentNames: [],
         questions: [],
-        answers: []
+        answers: [],
+        visualMarkers: []
       }
     }
     
-    // Padrões para identificar gabarito
-    const gabaritoPatterns = [
+    // Padrões específicos para gabarito visual com quadrados preenchidos
+    const visualGabaritoPatterns = [
       /nome:\s*gabarito/i,
-      /gabarito\s*oficial/i,
-      /folha\s*de\s*gabarito/i,
-      /^gabarito/i
+      /gabarito\s*data:/i,
+      /^gabarito$/i,
+      /folha.*gabarito/i
+    ]
+    
+    // Padrões para campo de data (comum em gabaritos)
+    const datePatterns = [
+      /data:\s*\d{1,2}\/\d{1,2}\/\d{2,4}/i,
+      /\d{1,2}\/\d{1,2}\/\d{2,4}/,
+      /data:/i
     ]
     
     // Padrões para identificar nomes de estudantes
@@ -381,29 +586,65 @@ export function analyzeTextStructure(text) {
       /estudante:\s*[a-záàâãéêíóôõúç\s]+$/i
     ]
     
-    // Padrões para identificar questões
+    // Padrões para questões numeradas (formato comum em gabarito)
     const questionPatterns = [
-      /^\d+[\.\)]\s*/,
+      /^\d+$/,                    // Apenas número (formato típico de gabarito)
+      /^\d+[\.\)]\s*/,            // Número com ponto ou parêntese
       /questão\s*\d+/i,
       /pergunta\s*\d+/i
     ]
     
-    // Padrões para identificar alternativas
+    // Padrões para alternativas A-E (formato típico múltipla escolha)
     const answerPatterns = [
-      /^\s*[a-e][\)\.\]]/i,
-      /\([a-e]\)/i,
-      /\[[a-e]\]/i
+      /^\s*[abcde]\s*$/i,         // Apenas uma letra (formato comum em gabarito)
+      /^\s*[a-e][\)\.\]]/i,       // Letra com pontuação
+      /\([a-e]\)/i,               // Letra entre parênteses
+      /\[[a-e]\]/i                // Letra entre colchetes
     ]
+    
+    // Padrões para detectar sequências de alternativas (A B C D E)
+    const multipleChoiceSequencePatterns = [
+      /[a-e]\s+[a-e]\s+[a-e]\s+[a-e]\s+[a-e]/i,  // A B C D E separadas por espaços
+      /A\s*B\s*C\s*D\s*E/i,                        // Sequência clássica
+      /a\s*b\s*c\s*d\s*e/i                         // Minúsculas
+    ]
+    
+    // Verifica o texto completo para padrões de sequência
+    const fullText = text.toLowerCase()
+    let hasMultipleChoicePattern = false
+    
+    for (const pattern of multipleChoiceSequencePatterns) {
+      if (pattern.test(fullText)) {
+        hasMultipleChoicePattern = true
+        analysis.patterns.visualMarkers.push('Sequência A-E detectada')
+        break
+      }
+    }
+    
+    // Conta questões numeradas sequenciais (indicativo de gabarito)
+    const numberedLines = lines.filter(line => /^\d+$/.test(line.trim()))
+    const isSequentialNumbering = numberedLines.length >= 5 && 
+      numberedLines.every((line, index) => 
+        parseInt(line.trim()) === index + 1 || parseInt(line.trim()) <= numberedLines.length + 5
+      )
     
     // Analisa cada linha
     for (const line of lines) {
       const trimmedLine = line.trim()
       
-      // Verifica padrões de gabarito
-      for (const pattern of gabaritoPatterns) {
+      // Verifica padrões de gabarito visual
+      for (const pattern of visualGabaritoPatterns) {
         if (pattern.test(trimmedLine)) {
           analysis.hasGabarito = true
+          analysis.hasVisualGabarito = true
           analysis.patterns.gabarito.push(trimmedLine)
+        }
+      }
+      
+      // Verifica campo de data
+      for (const pattern of datePatterns) {
+        if (pattern.test(trimmedLine)) {
+          analysis.hasDateField = true
         }
       }
       
@@ -432,8 +673,19 @@ export function analyzeTextStructure(text) {
       }
     }
     
-    // Determina o tipo e confiança baseado nos padrões encontrados
-    if (analysis.hasGabarito && analysis.hasQuestions) {
+    // Determina o tipo baseado na análise melhorada
+    if (analysis.hasVisualGabarito || 
+        (analysis.hasGabarito && analysis.hasDateField && hasMultipleChoicePattern)) {
+      
+      if (isSequentialNumbering && analysis.hasAnswerChoices) {
+        analysis.type = 'visual_answer_key'
+        analysis.confidence = 0.95
+      } else if (analysis.hasGabarito) {
+        analysis.type = 'answer_key_document'
+        analysis.confidence = 0.85
+      }
+      
+    } else if (analysis.hasGabarito && analysis.hasQuestions) {
       if (analysis.hasStudentNames) {
         analysis.type = 'exam_with_answer_key'
         analysis.confidence = 0.9
@@ -441,6 +693,9 @@ export function analyzeTextStructure(text) {
         analysis.type = 'answer_key_only'
         analysis.confidence = 0.8
       }
+    } else if (analysis.hasStudentNames && analysis.hasQuestions && hasMultipleChoicePattern) {
+      analysis.type = 'student_exam_visual'
+      analysis.confidence = 0.85
     } else if (analysis.hasStudentNames && analysis.hasQuestions) {
       analysis.type = 'student_exam'
       analysis.confidence = 0.7
@@ -452,12 +707,16 @@ export function analyzeTextStructure(text) {
       analysis.confidence = 0.3
     }
     
+    // Log detalhado para debugging
     console.log(`   • Tipo identificado: ${analysis.type}`)
     console.log(`   • Confiança: ${analysis.confidence}`)
     console.log(`   • Tem gabarito: ${analysis.hasGabarito}`)
-    console.log(`   • Tem nomes de estudantes: ${analysis.hasStudentNames}`)
-    console.log(`   • Tem questões: ${analysis.hasQuestions}`)
-    console.log(`   • Tem alternativas: ${analysis.hasAnswerChoices}`)
+    console.log(`   • Tem gabarito visual: ${analysis.hasVisualGabarito}`)
+    console.log(`   • Tem campo data: ${analysis.hasDateField}`)
+    console.log(`   • Tem sequência A-E: ${hasMultipleChoicePattern}`)
+    console.log(`   • Numeração sequencial: ${isSequentialNumbering}`)
+    console.log(`   • Questões encontradas: ${analysis.patterns.questions.length}`)
+    console.log(`   • Alternativas encontradas: ${analysis.patterns.answers.length}`)
     
     return analysis
   } catch (error) {

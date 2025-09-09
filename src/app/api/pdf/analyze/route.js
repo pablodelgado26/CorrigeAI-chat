@@ -4,8 +4,14 @@ import {
   isValidPDF, 
   extractMetadata, 
   splitTextIntoChunks,
-  analyzeTextStructure 
+  analyzeTextStructure,
+  extractVisualAnswerKey
 } from '../../../../lib/pdf/pdfReader.js'
+import { 
+  extractDataFromExcel, 
+  isValidExcel, 
+  detectFileType 
+} from '../../../../lib/excel/excelReader.js'
 import { analyzeDocument, analyzeDocumentInChunks } from '../../../../lib/ai/documentAnalyzer.js'
 import { validateAnalysisParams, formatErrorResponse, formatSuccessResponse, calculateTextStats } from '../../../../lib/utils/validation.js'
 
@@ -35,10 +41,14 @@ export async function POST(request) {
     if (!file) {
       console.log('❌ Nenhum arquivo enviado')
       return NextResponse.json(
-        formatErrorResponse('Nenhum arquivo PDF foi enviado', 400),
+        formatErrorResponse('Nenhum arquivo foi enviado', 400),
         { status: 400 }
       )
     }
+    
+    // Detecta tipo de arquivo
+    const fileType = detectFileType(file.name)
+    console.log('📁 Tipo de arquivo detectado:', fileType)
     
     // Validação do tipo de análise
     const analysisValidation = validateAnalysisParams(analysisType)
@@ -56,61 +66,81 @@ export async function POST(request) {
     const buffer = Buffer.from(arrayBuffer)
     console.log(`✅ Buffer criado: ${buffer.length} bytes`)
     
-    // Validação do PDF
-    if (!isValidPDF(buffer)) {
-      console.log('❌ Arquivo não é um PDF válido')
-      return NextResponse.json(
-        formatErrorResponse('Arquivo não é um PDF válido ou está corrompido', 400),
-        { status: 400 }
-      )
-    }
-    console.log('✅ PDF válido confirmado')
+    // Validação baseada no tipo de arquivo
+    let documentData
     
-    // === EXTRAÇÃO DE TEXTO ===
-    let pdfData
-    try {
-      console.log('⏳ Extraindo texto do PDF...')
-      pdfData = await extractTextFromPDF(buffer)
-      console.log('✅ Extração concluída:', {
-        paginas: pdfData.numPages,
-        palavras: pdfData.wordCount,
-        caracteres: pdfData.charCount,
-        temConteudo: pdfData.hasEnoughContent
-      })
-    } catch (error) {
-      console.error('❌ Erro na extração do PDF:', {
-        message: error.message,
-        stack: error.stack
-      })
+    if (fileType === 'pdf') {
+      // Processamento PDF
+      if (!isValidPDF(buffer)) {
+        console.log('❌ Arquivo não é um PDF válido')
+        return NextResponse.json(
+          formatErrorResponse('Arquivo não é um PDF válido ou está corrompido', 400),
+          { status: 400 }
+        )
+      }
+      console.log('✅ PDF válido confirmado')
       
-      // Mensagens mais específicas baseadas no tipo de erro
-      let errorMessage = 'Falha ao extrair texto do PDF.'
-      if (error.message.includes('corrompido')) {
-        errorMessage += ' O arquivo parece estar corrompido.'
-      } else if (error.message.includes('senha')) {
-        errorMessage += ' O arquivo está protegido por senha.'
-      } else if (error.message.includes('biblioteca')) {
-        errorMessage += ' Erro interno do sistema de leitura.'
-      } else {
-        errorMessage += ` Detalhes: ${error.message}`
+      // === EXTRAÇÃO DE TEXTO DO PDF ===
+      try {
+        console.log('⏳ Extraindo texto do PDF...')
+        documentData = await extractTextFromPDF(buffer)
+        documentData.fileType = 'pdf'
+        console.log('✅ Extração PDF concluída:', {
+          paginas: documentData.numPages,
+          palavras: documentData.wordCount,
+          caracteres: documentData.charCount,
+          temConteudo: documentData.hasEnoughContent
+        })
+      } catch (error) {
+        console.error('❌ Erro na extração do PDF:', error)
+        return handleExtractionError(error, 'PDF')
       }
       
+    } else if (fileType === 'excel') {
+      // Processamento Excel
+      if (!isValidExcel(buffer)) {
+        console.log('❌ Arquivo não é um Excel válido')
+        return NextResponse.json(
+          formatErrorResponse('Arquivo não é um Excel válido ou está corrompido', 400),
+          { status: 400 }
+        )
+      }
+      console.log('✅ Excel válido confirmado')
+      
+      // === EXTRAÇÃO DE DADOS DO EXCEL ===
+      try {
+        console.log('⏳ Extraindo dados do Excel...')
+        documentData = await extractDataFromExcel(buffer)
+        documentData.fileType = 'excel'
+        console.log('✅ Extração Excel concluída:', {
+          linhas: documentData.numRows,
+          colunas: documentData.numCols,
+          palavras: documentData.wordCount,
+          temConteudo: documentData.hasEnoughContent
+        })
+      } catch (error) {
+        console.error('❌ Erro na extração do Excel:', error)
+        return handleExtractionError(error, 'Excel')
+      }
+      
+    } else {
+      console.log('❌ Tipo de arquivo não suportado:', fileType)
       return NextResponse.json(
-        formatErrorResponse(errorMessage, 422),
-        { status: 422 }
+        formatErrorResponse('Tipo de arquivo não suportado. Apenas PDF e Excel (.xlsx/.xls) são aceitos.', 400),
+        { status: 400 }
       )
     }
     
     // Verifica se há conteúdo suficiente
-    if (!pdfData.hasEnoughContent) {
-      console.log('❌ PDF sem conteúdo suficiente:', {
-        isEmpty: pdfData.isEmpty,
-        textLength: pdfData.cleanText.length
+    if (!documentData.hasEnoughContent) {
+      console.log('❌ Documento sem conteúdo suficiente:', {
+        isEmpty: documentData.isEmpty,
+        textLength: documentData.cleanText.length
       })
       
-      const errorMessage = pdfData.isEmpty 
-        ? 'PDF não contém texto legível. Pode ser composto apenas por imagens.'
-        : 'PDF contém muito pouco texto para análise. Verifique o conteúdo.'
+      const errorMessage = documentData.isEmpty 
+        ? `${fileType.toUpperCase()} não contém texto legível. Pode ser composto apenas por imagens.`
+        : `${fileType.toUpperCase()} contém muito pouco texto para análise. Verifique o conteúdo.`
       
       return NextResponse.json(
         formatErrorResponse(errorMessage, 422),
@@ -119,11 +149,70 @@ export async function POST(request) {
     }
     
     // === ANÁLISE DA ESTRUTURA ===
-    const textStructure = analyzeTextStructure(pdfData.cleanText)
-    console.log('🔍 Estrutura do texto analisada:', textStructure.type)
+    let textStructure
+    let visualAnswerKey = null
+    
+    if (fileType === 'pdf') {
+      textStructure = analyzeTextStructure(documentData.cleanText)
+      console.log('🔍 Estrutura do texto analisada:', textStructure.type)
+      
+      // === EXTRAÇÃO ESPECÍFICA DE GABARITO VISUAL ===
+      if (textStructure.type === 'visual_answer_key' || 
+          textStructure.type === 'answer_key_document' || 
+          textStructure.hasVisualGabarito ||
+          analysisType === 'exam_correction') {
+        
+        console.log('🎯 Tentando extrair gabarito visual do PDF...')
+        visualAnswerKey = extractVisualAnswerKey(documentData.cleanText)
+        
+        if (visualAnswerKey.success) {
+          console.log(`✅ Gabarito visual extraído: ${visualAnswerKey.questionsFound} questões`)
+        } else {
+          console.log(`⚠️ Extração de gabarito falhou: ${visualAnswerKey.message}`)
+        }
+      }
+    } else if (fileType === 'excel') {
+      // Para Excel, usa análise específica já feita na extração
+      textStructure = {
+        type: documentData.answerKeyAnalysis.hasAnswerKey ? 'excel_answer_key' : 'excel_document',
+        confidence: documentData.answerKeyAnalysis.confidence,
+        hasGabarito: documentData.answerKeyAnalysis.hasAnswerKey,
+        hasVisualGabarito: documentData.answerKeyAnalysis.format === 'binary',
+        format: documentData.answerKeyAnalysis.format
+      }
+      
+      console.log('📊 Estrutura Excel analisada:', textStructure.type)
+      
+      // Usa gabarito extraído do Excel
+      if (documentData.answerKeyAnalysis.hasAnswerKey) {
+        visualAnswerKey = {
+          success: Object.keys(documentData.answerKeyAnalysis.answerKey).length > 0,
+          answerKey: documentData.answerKeyAnalysis.answerKey,
+          questionsFound: Object.keys(documentData.answerKeyAnalysis.answerKey).length,
+          extractionLog: documentData.answerKeyAnalysis.patterns,
+          message: `Gabarito Excel extraído: ${Object.keys(documentData.answerKeyAnalysis.answerKey).length} questões`
+        }
+        console.log(`✅ Gabarito Excel extraído: ${visualAnswerKey.questionsFound} questões`)
+      }
+    }
     
     // === EXTRAÇÃO DE METADADOS ===
-    const metadata = extractMetadata(pdfData)
+    const metadata = fileType === 'pdf' 
+      ? extractMetadata(documentData)
+      : {
+          title: `Planilha Excel: ${file.name}`,
+          author: 'Não especificado',
+          subject: 'Análise de Excel',
+          creator: 'Sistema CorrigeAI',
+          producer: 'Excel Reader',
+          pages: 1,
+          version: 'Excel',
+          sheetName: documentData.sheetName,
+          allSheets: documentData.allSheets,
+          rows: documentData.numRows,
+          cols: documentData.numCols
+        }
+    
     console.log('📊 Metadados extraídos:', {
       titulo: metadata.title,
       autor: metadata.author,
@@ -131,7 +220,7 @@ export async function POST(request) {
     })
     
     // === CÁLCULO DE ESTATÍSTICAS ===
-    const textStats = calculateTextStats(pdfData.cleanText)
+    const textStats = calculateTextStats(documentData.cleanText)
     console.log('📈 Estatísticas calculadas:', {
       palavras: textStats.words,
       tempoLeitura: textStats.readingTimeMinutes
@@ -142,7 +231,7 @@ export async function POST(request) {
     
     // Decide se deve analisar em chunks baseado no tamanho
     const maxTokens = 6000 // Limite conservador para o modelo
-    const shouldUseChunks = pdfData.cleanText.length > maxTokens
+    const shouldUseChunks = documentData.cleanText.length > maxTokens
     
     let analysis
     
@@ -150,24 +239,31 @@ export async function POST(request) {
     const enhancedMetadata = {
       ...metadata,
       textStructure,
+      visualAnswerKey: visualAnswerKey || null,
+      fileType,
       analysisContext: {
         isExamRelated: textStructure.type.includes('exam') || textStructure.type.includes('answer'),
         hasGabarito: textStructure.hasGabarito,
-        hasStudentNames: textStructure.hasStudentNames,
-        confidence: textStructure.confidence
+        hasVisualGabarito: textStructure.hasVisualGabarito,
+        hasStudentNames: textStructure.hasStudentNames || false,
+        confidence: textStructure.confidence,
+        visualAnswerKeyExtracted: visualAnswerKey?.success || false,
+        questionsInAnswerKey: visualAnswerKey?.questionsFound || 0,
+        documentFormat: fileType,
+        binaryPatterns: fileType === 'excel' ? documentData.answerKeyAnalysis.binaryPatterns : []
       }
     }
     
     try {
       if (shouldUseChunks) {
         console.log('📄 Documento grande - analisando em chunks...')
-        const chunks = splitTextIntoChunks(pdfData.cleanText, maxTokens)
+        const chunks = splitTextIntoChunks(documentData.cleanText, maxTokens)
         console.log(`Dividido em ${chunks.length} chunks`)
         
         analysis = await analyzeDocumentInChunks(chunks, enhancedMetadata, analysisType)
       } else {
         console.log('📄 Documento pequeno - análise direta...')
-        analysis = await analyzeDocument(pdfData.cleanText, enhancedMetadata, analysisType)
+        analysis = await analyzeDocument(documentData.cleanText, enhancedMetadata, analysisType)
       }
       
       console.log('✅ Análise com IA concluída com sucesso')
@@ -203,7 +299,14 @@ export async function POST(request) {
         name: file.name,
         size: file.size,
         type: file.type,
-        pages: pdfData.numPages
+        pages: fileType === 'pdf' ? documentData.numPages : documentData.numRows,
+        fileType,
+        ...(fileType === 'excel' && {
+          sheetName: documentData.sheetName,
+          allSheets: documentData.allSheets,
+          rows: documentData.numRows,
+          cols: documentData.numCols
+        })
       },
       textStats,
       metadata: enhancedMetadata,
@@ -213,15 +316,19 @@ export async function POST(request) {
       processingInfo: {
         chunksUsed: shouldUseChunks,
         chunksCount: shouldUseChunks ? analysis.chunksAnalyzed : 1,
-        textExtracted: pdfData.wordCount > 0,
+        textExtracted: documentData.wordCount > 0,
         structureAnalyzed: textStructure.type,
-        confidence: textStructure.confidence
+        confidence: textStructure.confidence,
+        visualAnswerKeyExtracted: visualAnswerKey?.success || false,
+        visualAnswerKey: visualAnswerKey || null,
+        fileType,
+        supportsBinary: fileType === 'excel' || textStructure.hasVisualGabarito
       }
     }
     
     console.log('🎉 Análise concluída com sucesso!')
     return NextResponse.json(
-      formatSuccessResponse(responseData, 'PDF analisado com sucesso'),
+      formatSuccessResponse(responseData, `${fileType.toUpperCase()} analisado com sucesso`),
       { status: 200 }
     )
     
@@ -254,13 +361,42 @@ export async function POST(request) {
   }
 }
 
+/**
+ * Trata erros de extração de arquivos
+ */
+function handleExtractionError(error, fileType) {
+  // Mensagens mais específicas baseadas no tipo de erro
+  let errorMessage = `Falha ao extrair dados do ${fileType}.`
+  
+  if (error.message.includes('corrompido')) {
+    errorMessage += ' O arquivo parece estar corrompido.'
+  } else if (error.message.includes('senha')) {
+    errorMessage += ' O arquivo está protegido por senha.'
+  } else if (error.message.includes('biblioteca') || error.message.includes('library')) {
+    errorMessage += ' Erro interno do sistema de leitura.'
+  } else if (error.message.includes('format') || error.message.includes('formato')) {
+    errorMessage += ' Formato de arquivo não suportado ou inválido.'
+  } else {
+    errorMessage += ` Detalhes: ${error.message}`
+  }
+  
+  return NextResponse.json(
+    formatErrorResponse(errorMessage, 422),
+    { status: 422 }
+  )
+}
+
 export async function GET() {
   return NextResponse.json({
-    message: 'API de análise de PDF - Versão Melhorada',
+    message: 'API de análise de documentos - Versão Aprimorada com Excel',
     endpoints: {
-      POST: '/api/pdf/analyze - Envia PDF para análise'
+      POST: '/api/pdf/analyze - Envia PDF ou Excel para análise'
     },
-    supportedFormats: ['application/pdf'],
+    supportedFormats: [
+      'application/pdf - Arquivos PDF',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet - Excel (.xlsx)',
+      'application/vnd.ms-excel - Excel (.xls)'
+    ],
     maxFileSize: '50MB',
     analysisTypes: [
       'comprehensive - Análise completa e detalhada',
@@ -268,14 +404,24 @@ export async function GET() {
       'academic - Análise acadêmica',
       'business - Análise empresarial',
       'educational - Análise educacional',
-      'exam_correction - Correção automática de provas'
+      'exam_correction - Correção automática de provas (NOVO: suporte a padrões binários 0/1)'
     ],
     features: [
-      'Extração robusta de texto',
+      'Extração robusta de texto (PDF e Excel)',
       'Análise da estrutura do documento',
-      'Identificação automática de gabaritos e provas',
+      'Identificação automática de gabaritos visuais',
+      'NOVO: Suporte a padrões binários (0/1) para marcações',
+      'NOVO: Leitura de arquivos Excel (.xlsx/.xls)',
+      'NOVO: Detecção de gabaritos em formato A=1, B=0, C=0, D=0, E=0',
       'Tratamento melhorado de erros',
       'Logs detalhados para debugging'
+    ],
+    binaryPatterns: [
+      'Formato horizontal: 1 0 1 0 0 (questão seguida de 5 valores binários)',
+      'Formato vertical: questão em uma linha, 0/1 nas linhas seguintes',
+      'Formato com símbolos: A=1 B=0 C=0 D=0 E=0',
+      'Formato simples: 01000 (apenas os 5 dígitos)',
+      'Detecção automática do padrão usado no documento'
     ]
   })
 }

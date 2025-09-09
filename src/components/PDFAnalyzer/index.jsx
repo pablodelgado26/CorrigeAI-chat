@@ -20,7 +20,7 @@ export default function PDFAnalyzer() {
     { value: 'academic', label: 'Análise Acadêmica', description: 'Foco em metodologia e rigor científico' },
     { value: 'business', label: 'Análise Empresarial', description: 'Foco em estratégia e impacto no negócio' },
     { value: 'educational', label: 'Análise Educacional', description: 'Foco em objetivos de aprendizagem' },
-    { value: 'exam_correction', label: 'Correção de Provas', description: 'Correção automática com primeira página como gabarito' }
+    { value: 'exam_correction', label: 'Correção de Provas', description: 'Correção automática - suporte a PDF e Excel com padrões binários (0/1)' }
   ]
 
   const handleFileSelect = (event) => {
@@ -28,9 +28,18 @@ export default function PDFAnalyzer() {
     
     if (!selectedFile) return
     
-    // Validações básicas
-    if (selectedFile.type !== 'application/pdf') {
-      showError('Por favor, selecione apenas arquivos PDF')
+    // Validações para tipos suportados
+    const supportedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.ms-excel' // .xls
+    ]
+    
+    const supportedExtensions = ['.pdf', '.xlsx', '.xls']
+    const fileExtension = selectedFile.name.toLowerCase().slice(selectedFile.name.lastIndexOf('.'))
+    
+    if (!supportedTypes.includes(selectedFile.type) && !supportedExtensions.includes(fileExtension)) {
+      showError('Tipo de arquivo não suportado. Use PDF (.pdf) ou Excel (.xlsx, .xls)')
       return
     }
     
@@ -44,10 +53,13 @@ export default function PDFAnalyzer() {
       showWarning('Arquivo grande detectado. O processamento pode demorar mais.')
     }
     
+    // Mensagem específica baseada no tipo de arquivo
+    const fileType = fileExtension === '.pdf' ? 'PDF' : 'Excel'
+    
     setFile(selectedFile)
     setError(null)
     setResult(null)
-    showSuccess(`Arquivo "${selectedFile.name}" selecionado com sucesso`)
+    showSuccess(`Arquivo ${fileType} "${selectedFile.name}" selecionado com sucesso`)
   }
 
   const handleDrop = (event) => {
@@ -227,8 +239,13 @@ ${new Date().toLocaleString('pt-BR')}
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2>📄 Analisador de PDF</h2>
-        <p>Faça upload de um PDF e obtenha uma análise detalhada usando IA</p>
+        <h2>📄 Analisador de Documentos</h2>
+        <p>Faça upload de um PDF ou Excel e obtenha uma análise detalhada usando IA</p>
+        <div className={styles.supportedFormats}>
+          <span>📋 Formatos suportados:</span>
+          <span className={styles.format}>PDF</span>
+          <span className={styles.format}>Excel (.xlsx/.xls)</span>
+        </div>
       </div>
 
       {/* Upload Area */}
@@ -241,7 +258,7 @@ ${new Date().toLocaleString('pt-BR')}
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf,application/pdf"
+          accept=".pdf,.xlsx,.xls,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
           onChange={handleFileSelect}
           className={styles.fileInput}
         />
@@ -249,12 +266,14 @@ ${new Date().toLocaleString('pt-BR')}
         {!file ? (
           <div className={styles.uploadPrompt}>
             <div className={styles.uploadIcon}>📁</div>
-            <p>Clique aqui ou arraste um arquivo PDF</p>
-            <span>Máximo 50MB</span>
+            <p>Clique aqui ou arraste um arquivo PDF ou Excel</p>
+            <span>Máximo 50MB • PDF, .xlsx, .xls</span>
           </div>
         ) : (
           <div className={styles.fileInfo}>
-            <div className={styles.fileIcon}>📄</div>
+            <div className={styles.fileIcon}>
+              {file.name.toLowerCase().endsWith('.pdf') ? '📄' : '📊'}
+            </div>
             <div className={styles.fileDetails}>
               <h4>{file.name}</h4>
               <p>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
@@ -301,28 +320,70 @@ ${new Date().toLocaleString('pt-BR')}
         <div className={styles.examInstructions}>
           <h3>📝 Instruções para Correção de Provas</h3>
           <div className={styles.instructionCard}>
-            <h4>🎯 Formato Obrigatório do PDF:</h4>
-            <ul>
-              <li><strong>Primeira página:</strong> Gabarito oficial com "nome: GABARITO" e "data:"</li>
-              <li><strong>Páginas seguintes:</strong> Provas dos alunos (uma ou mais por página)</li>
-            </ul>
+            <h4>📄 Formatos Suportados:</h4>
+            <div className={styles.formatTabs}>
+              <div className={styles.formatTab}>
+                <h5>🗋 PDF</h5>
+                <ul>
+                  <li><strong>Primeira página:</strong> Gabarito oficial com "nome: GABARITO" e "data:"</li>
+                  <li><strong>Páginas seguintes:</strong> Provas dos alunos</li>
+                  <li><strong>Marcação:</strong> Quadrados preenchidos (pretos) para respostas corretas</li>
+                </ul>
+              </div>
+              
+              <div className={styles.formatTab}>
+                <h5>📊 Excel (.xlsx/.xls)</h5>
+                <ul>
+                  <li><strong>Padrões binários:</strong> 0 = não marcado, 1 = marcado</li>
+                  <li><strong>Horizontal:</strong> 1 | 0 1 0 0 0 (questão na primeira coluna)</li>
+                  <li><strong>Vertical:</strong> Questão em uma linha, 0/1 nas linhas seguintes</li>
+                  <li><strong>Com rótulos:</strong> A=1 B=0 C=0 D=0 E=0</li>
+                </ul>
+              </div>
+            </div>
+            
+            <h4>� Exemplos de Formatos Binários (Excel):</h4>
+            <div className={styles.binaryExamples}>
+              <div className={styles.exampleFormat}>
+                <h6>Formato 1: Horizontal</h6>
+                <pre>
+{`| Questão | A | B | C | D | E |
+|---------|---|---|---|---|---|
+|    1    | 0 | 1 | 0 | 0 | 0 |
+|    2    | 1 | 0 | 0 | 0 | 0 |`}
+                </pre>
+              </div>
+              
+              <div className={styles.exampleFormat}>
+                <h6>Formato 2: Sequencial</h6>
+                <pre>
+{`1
+01000
+2  
+10000`}
+                </pre>
+              </div>
+              
+              <div className={styles.exampleFormat}>
+                <h6>Formato 3: Com rótulos</h6>
+                <pre>
+{`Q1: A=0 B=1 C=0 D=0 E=0
+Q2: A=1 B=0 C=0 D=0 E=0`}
+                </pre>
+              </div>
+            </div>
             
             <h4>✅ Padrão de Marcação:</h4>
             <ul>
               <li><strong>Alternativas:</strong> A, B, C, D, E em sequência</li>
-              <li><strong>Marcação válida:</strong> Quadrado completamente preenchido em preto</li>
-              <li><strong>Não marcado:</strong> Quadrado vazio ou apenas contorno</li>
-            </ul>
-            
-            <h4>👨‍🎓 Identificação dos Alunos:</h4>
-            <ul>
-              <li>Nome do aluno deve estar visível no cabeçalho de cada prova</li>
-              <li>Formato: "nome: [NOME DO ALUNO]" e "data:" (similar ao gabarito)</li>
-              <li>Questões numeradas em ordem sequencial</li>
+              <li><strong>Valor 1:</strong> Resposta selecionada/marcada</li>
+              <li><strong>Valor 0:</strong> Resposta não selecionada</li>
+              <li><strong>PDF:</strong> Quadrado completamente preenchido = marcado</li>
+              <li><strong>Excel:</strong> Célula com valor "1" = marcado</li>
             </ul>
             
             <div className={styles.warningBox}>
-              <strong>⚠️ Importante:</strong> A IA analisará visualmente o PDF. O gabarito deve conter "nome: GABARITO" no cabeçalho para identificação automática. Certifique-se de que as marcações estejam bem visíveis e contrastadas.
+              <strong>⚠️ Importante:</strong> O sistema detecta automaticamente o formato usado. Para PDFs, procure por "nome: GABARITO". Para Excel, use padrões binários (0/1) consistentes. O sistema suporta até 30 questões por gabarito.
             </div>
           </div>
         </div>
@@ -342,7 +403,7 @@ ${new Date().toLocaleString('pt-BR')}
                 Analisando...
               </>
             ) : (
-              '🔍 Analisar PDF'
+              `🔍 Analisar ${file?.name?.toLowerCase().endsWith('.pdf') ? 'PDF' : 'Excel'}`
             )}
           </button>
         </div>
